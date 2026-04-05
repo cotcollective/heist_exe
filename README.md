@@ -104,8 +104,9 @@ Lance `make seed` et une mission complète est déjà injectée et prête à jou
 
 ```bash
 # Cloner + configurer
-git clone http://Github.com/cotcollective/heist_exe
-cp .env.example .env      # Met ton ADMIN_KEY dans ce fichier
+git clone https://github.com/cotcollective/heist_exe
+cd heist_exe              # ← ne pas oublier !
+cp .env.example .env      # édite ADMIN_KEY
 
 # Lancer (Docker requis)
 docker-compose up --build -d
