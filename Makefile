@@ -48,6 +48,22 @@ dev-backend:
 dev-frontend:
 	cd frontend && npm install && npm run dev
 
+# ── Réseau — accès depuis le cell du fils ────────────────────────────────────
+ip:
+	@echo ""
+	@echo "  📱 URL WiFi pour le cell du fils (même réseau) :"
+	@IP=$$(hostname -I | awk '{print $$1}') && echo "  http://$$IP:$${APP_PORT:-8080}"
+	@echo ""
+	@echo "  Envoie cette URL par SMS. Sur son cell :"
+	@echo "  Safari/Chrome → 'Partager' → 'Sur l'écran d'accueil'"
+	@echo ""
+
+tunnel:
+	@echo ""
+	@echo "  🔐 Tunnel public ngrok (réseaux différents) ..."
+	@which ngrok > /dev/null 2>&1 || (echo "  ngrok requis : sudo snap install ngrok" && exit 1)
+	ngrok http $${APP_PORT:-8080}
+
 # ── Lint / check ─────────────────────────────────────────────────────────────
 lint:
 	@python3 -c "\
@@ -75,12 +91,16 @@ help:
 	@echo ""
 	@echo "  HEIST.EXE — Commandes disponibles"
 	@echo "  ─────────────────────────────────────"
-	@echo "  make up          Démarrer tout (Docker)"
-	@echo "  make down        Arrêter"
-	@echo "  make logs        Suivre les logs"
-	@echo "  make seed        Injecter mission Tétreaultville"
-	@echo "  make test        Lancer les tests"
-	@echo "  make dev-backend Backend local (sans Docker)"
+	@echo "  make up           Démarrer tout (Docker)"
+	@echo "  make down         Arrêter"
+	@echo "  make logs         Suivre les logs"
+	@echo "  make seed         Injecter mission Tétreaultville"
+	@echo "  make test         Lancer les tests"
+	@echo "  ─── Réseau (cell du fils) ────────────────"
+	@echo "  make ip           URL WiFi locale → envoyer au fils (même réseau)"
+	@echo "  make tunnel       Tunnel public ngrok → fils sur data mobile"
+	@echo "  ─── Dev ──────────────────────────────────"
+	@echo "  make dev-backend  Backend local (sans Docker)"
 	@echo "  make dev-frontend Frontend local (Vite dev server)"
-	@echo "  make clean       Tout nettoyer"
+	@echo "  make clean        Tout nettoyer"
 	@echo ""
