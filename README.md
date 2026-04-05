@@ -103,7 +103,7 @@ Lance `make seed` et une mission complète est déjà injectée et prête à jou
 ## ⚡ Démarrer en 60 secondes
 
 ```bash
-# 1. Nettoyer tout dossier précédent
+# 1. Nettoyer tout dossier précédent   ->si le dossier existe deja
 rm -rf heist_exe
 
 # 2. Cloner + configurer
