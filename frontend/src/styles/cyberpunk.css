@@ -196,3 +196,162 @@ button.bg-hx-teal { box-shadow: 0 0 8px rgba(0,212,170,0.2); }
 
 /* ── Tabular nums countdown ──────────────────────────────────────────────────── */
 .tabular-nums { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   CRAZY TAXI NAV ARROW
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.nav-arrow-container {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+/* Ring de pulsation derrière la flèche */
+.nav-arrow-ring {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 212, 170, 0.25);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  animation: arrow-ring-pulse 2s ease-in-out infinite;
+}
+
+@keyframes arrow-ring-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.3); }
+  50%       { box-shadow: 0 0 0 8px rgba(0, 212, 170, 0); }
+}
+
+/* La SVG flèche elle-même */
+.nav-arrow-svg {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  filter: drop-shadow(0 0 6px rgba(0, 212, 170, 0.7));
+}
+
+/* Label degrés sous la flèche */
+.nav-arrow-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(0, 212, 170, 0.6);
+  letter-spacing: 0.1em;
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   DEV GPS PANEL (invisible en production)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.dev-gps-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 9000;
+  background: rgba(10, 10, 10, 0.93);
+  border-top: 1px solid #ff6b35;
+  backdrop-filter: blur(8px);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dev-gps-toggle {
+  width: 100%;
+  padding: 6px 12px;
+  background: rgba(255, 107, 53, 0.1);
+  border: none;
+  border-bottom: 1px solid #222;
+  color: #ff6b35;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+}
+.dev-gps-toggle:hover { background: rgba(255, 107, 53, 0.2); }
+
+.dev-gps-body {
+  padding: 10px 12px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.dev-gps-section-label {
+  color: #444;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  margin-bottom: 6px;
+  margin-top: 4px;
+}
+
+.dev-gps-wp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.dev-gps-wp-btn {
+  padding: 5px 8px;
+  background: #111;
+  border: 1px solid #1f1f1f;
+  border-radius: 3px;
+  color: #888;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.1s, color 0.1s;
+}
+.dev-gps-wp-btn:hover { border-color: #00d4aa; color: #00d4aa; }
+.dev-gps-wp-btn.active { border-color: #ff6b35; color: #ff6b35; }
+.dev-gps-wp-btn.range { color: #22c55e; }
+.dev-gps-wp-btn.range:hover { border-color: #22c55e; }
+
+.dev-gps-custom {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dev-gps-input {
+  flex: 1;
+  background: #111;
+  border: 1px solid #1f1f1f;
+  border-radius: 3px;
+  color: #e8e8e8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 5px 8px;
+  outline: none;
+}
+.dev-gps-input:focus { border-color: #ff6b35; }
+.dev-gps-input::placeholder { color: #333; }
+
+.dev-gps-inject-btn {
+  padding: 5px 10px;
+  background: #ff6b35;
+  border: none;
+  border-radius: 3px;
+  color: #0a0a0a;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s;
+}
+.dev-gps-inject-btn:hover:not(:disabled) { background: #e05a25; }
+.dev-gps-inject-btn:disabled { background: #1f1f1f; color: #333; cursor: not-allowed; }
+
