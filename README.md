@@ -14,7 +14,7 @@
 [![Tests](https://img.shields.io/badge/Tests-22%2F22%20passing-4CAF50?style=for-the-badge&logo=pytest&logoColor=white)](#)
 [![Changelog](https://img.shields.io/badge/Changelog-v1.0.0-gray?style=for-the-badge)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/Licence-MIT-blueviolet?style=for-the-badge)](LICENSE)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-00ff88?style=for-the-badge&logo=github&logoColor=white)](https://portefolio.github.io/heist_exe/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-00ff88?style=for-the-badge&logo=github&logoColor=white)](https://cotcollective.github.io/heist_exe/)
 
 <br/>
 
@@ -104,9 +104,8 @@ Lance `make seed` et une mission complète est déjà injectée et prête à jou
 
 ```bash
 # Cloner + configurer
-git clone https://github.com/cotcollective/heist_exe
-cd heist_exe              # ← ne pas oublier !
-cp .env.example .env      # édite ADMIN_KEY
+git clone http://Github.com/cotcollective/heist_exe
+cp .env.example .env      # Met ton ADMIN_KEY dans ce fichier
 
 # Lancer (Docker requis)
 docker-compose up --build -d
@@ -252,10 +251,22 @@ curl -X POST http://localhost/api/upload/audio/<mission_id> \
 
 ---
 
+💬 Connect With Us / Contactez-Nous
+🐙 GitHub: @cotcollective
+📧 Issues & Questions: Open an issue on GitHub
+🎮 don't forget to leave a ✨️!
+👨‍💻 About the Creator
+Dave Senez - Researcher & AI Developer
+
+🔬 ORCID: https://orcid.org/0009-0005-3410-323X
+📚 Pre-prints, Papers & AI Research Available on ORCID
+🤖 Symbiotic AI Partner(s) - Building the future together
+📧 For inquiries & job opportunities: D.SENEZ.RESEARCH@PROTON.ME
+
 **Fait avec ☕ à Montréal · Tétreaultville District · 2025**
 
 *Pour chaque père qui veut que son fils vive une vraie aventure.*
 
-`v1.0` · MIT License · [Swagger docs](http://localhost/api/docs)
+`v1.0` · MIT License · [Swagger docs]
 
 </div>
