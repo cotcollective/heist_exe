@@ -16,6 +16,10 @@ import urllib.error
 import os
 
 BASE_URL = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "http://localhost:8000"
+# URL publique (via Nginx) dérivée automatiquement depuis BASE_URL
+# Quand on est dans Docker : BASE_URL pointe le backend (8000)
+# Le joueur accède via Nginx (8080 par défaut)
+_nginx_host = os.getenv("APP_HOST", "http://localhost:8080")
 ADMIN_KEY = os.getenv("ADMIN_KEY", "admin-secret-key-change-me")
 
 MISSION = {
@@ -135,7 +139,8 @@ def main():
     print("  HEIST.EXE — Seed Tétreaultville")
     print("=" * 60)
     print(f"  API: {BASE_URL}")
-    print(f"  Admin key: {'*' * (len(ADMIN_KEY) - 4) + ADMIN_KEY[-4:]}")
+    masked = "*" * max(0, len(ADMIN_KEY) - 4) + ADMIN_KEY[-4:] if len(ADMIN_KEY) >= 4 else "****"
+    print(f"  Admin key: {masked}")
     print()
 
     # Health check
@@ -183,14 +188,14 @@ def main():
     print("=" * 60)
     print("  MISSION PRÊTE")
     print("=" * 60)
-    print(f"  URL joueur : http://localhost")
+    print(f"  URL joueur : {_nginx_host}")
     print(f"  Mission ID : {mission_id}")
     print(f"  PIN accès  : 2077")
-    print(f"  Swagger    : http://localhost/api/docs")
+    print(f"  Swagger    : {_nginx_host}/api/docs")
     print()
     print("  Pour uploader un message audio:")
-    print(f"  curl -X POST http://localhost/api/upload/audio/{mission_id} \\")
-    print(f"    -H 'Authorization: Bearer {ADMIN_KEY}' \\")
+    print(f"  curl -X POST {_nginx_host}/api/upload/audio/{mission_id} \\")
+    print(f"    -H 'Authorization: Bearer $ADMIN_KEY' \\")
     print(f"    -F 'file=@ton_message.mp3'")
     print()
 
