@@ -14,7 +14,7 @@
 [![Tests](https://img.shields.io/badge/Tests-22%2F22%20passing-4CAF50?style=for-the-badge&logo=pytest&logoColor=white)](#)
 [![Changelog](https://img.shields.io/badge/Changelog-v1.0.0-gray?style=for-the-badge)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/Licence-MIT-blueviolet?style=for-the-badge)](LICENSE)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-00ff88?style=for-the-badge&logo=github&logoColor=white)](https://portefolio.github.io/heist_exe/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-00ff88?style=for-the-badge&logo=github&logoColor=white)](https://cotcollective.github.io/heist_exe/)
 
 <br/>
 
