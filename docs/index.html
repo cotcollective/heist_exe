@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HEIST.EXE — Urban Mission Platform</title>
+    <meta name="description"
+        content="Transform any neighbourhood into a timed spy mission. Dad creates, son plays. Open-source, Docker-ready, zero cloud dependencies." />
+    <meta property="og:title" content="HEIST.EXE — Urban Mission Platform" />
+    <meta property="og:description"
+        content="Transform any neighbourhood into a timed spy mission. Dad creates, son plays." />
+    <meta property="og:image"
+        content="https://raw.githubusercontent.com/portefolio/heist_exe/main/assets/heist_banner.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neon: '#00ff88',
+                        'neon-dim': '#00cc6a',
+                        'neon-glow': 'rgba(0, 255, 136, 0.12)',
+                        dark: '#060a06',
+                        surface: '#0d1117',
+                        border: 'rgba(0, 255, 136, 0.18)',
+                    },
+                    fontFamily: {
+                        mono: ['"Share Tech Mono"', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Rajdhani', 'sans-serif'],
+                    },
+                    animation: {
+                        flicker: 'flicker 4s infinite',
+                        blink: 'blink 1s step-start infinite',
+                        fadeup: 'fadeup 0.8s ease forwards',
+                    },
+                    keyframes: {
+                        flicker: {
+                            '0%, 94%, 100%': { opacity: 1 },
+                            '95%': { opacity: 0.6 },
+                            '97%': { opacity: 0.9 },
+                        },
+                        blink: {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0 },
+                        },
+                        fadeup: {
+                            from: { opacity: 0, transform: 'translateY(24px)' },
+                            to: { opacity: 1, transform: 'translateY(0)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@600;700&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        body {
+            background: #060a06;
+        }
+
+        ::selection {
+            background: rgba(0, 255, 136, 0.25);
+            color: #fff;
+        }
+
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.025) 2px, rgba(0, 0, 0, 0.025) 4px);
+        }
+
+        .glow-border {
+            border: 1px solid rgba(0, 255, 136, 0.18);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.06);
+        }
+
+        .neon-text {
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-gray-300 font-sans antialiased">
+
+    <!-- Scanline overlay -->
+    <div class="scanlines"></div>
+
+    <!-- ═══ NAV ══════════════════════════════════════════════════════ -->
+    <nav class="fixed top-0 inset-x-0 z-40 bg-dark/80 backdrop-blur-sm border-b border-neon/10">
+        <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+            <span class="font-mono text-neon text-sm tracking-widest animate-flicker">HEIST.EXE</span>
+            <div class="flex items-center gap-6">
+                <a href="#features"
+                    class="text-xs font-mono text-gray-500 hover:text-neon transition-colors tracking-wider">FEATURES</a>
+                <a href="#stack"
+                    class="text-xs font-mono text-gray-500 hover:text-neon transition-colors tracking-wider">STACK</a>
+                <a href="#install"
+                    class="text-xs font-mono text-gray-500 hover:text-neon transition-colors tracking-wider">INSTALL</a>
+                <a href="https://github.com/portefolio/heist_exe"
+                    class="px-4 py-1.5 text-xs font-mono border border-neon/40 text-neon rounded hover:bg-neon/10 transition-all tracking-wider">
+                    ★ GitHub
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══ HERO ══════════════════════════════════════════════════════ -->
+    <section
+        class="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20 pb-16 overflow-hidden">
+
+        <!-- Background glow -->
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_40%,rgba(0,255,136,0.06),transparent)]">
+        </div>
+
+        <!-- Grid dots -->
+        <div class="absolute inset-0 opacity-20"
+            style="background-image: radial-gradient(rgba(0,255,136,0.3) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+
+        <div class="relative z-10 max-w-4xl mx-auto animate-fadeup">
+
+            <!-- Label -->
+            <p class="font-mono text-neon text-xs tracking-[0.4em] mb-6 opacity-70">// URBAN MISSION PLATFORM · v1.0.0
+            </p>
+
+            <!-- Title -->
+            <h1
+                class="font-display font-bold text-7xl md:text-9xl tracking-tight text-white neon-text animate-flicker mb-6">
+                HEIST<span class="text-neon">.</span>EXE
+            </h1>
+
+            <!-- Tagline -->
+            <p class="text-xl md:text-2xl text-gray-400 font-light max-w-2xl mx-auto mb-4 leading-relaxed">
+                Transform any neighbourhood into a<br />
+                <span class="text-neon font-medium">timed spy mission.</span>
+            </p>
+            <p class="font-mono text-sm text-gray-600 mb-12 tracking-widest">
+                DAD CREATES &nbsp;·&nbsp; SON PLAYS &nbsp;·&nbsp; TÉTREAULTVILLE DISTRICT, MONTRÉAL
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://github.com/portefolio/heist_exe"
+                    class="px-8 py-3.5 bg-neon text-dark font-display font-bold text-sm tracking-wider rounded hover:bg-neon-dim transition-all hover:scale-105">
+                    ★ VIEW ON GITHUB
+                </a>
+                <a href="#install"
+                    class="px-8 py-3.5 border border-neon/30 text-neon font-mono text-sm tracking-wider rounded hover:bg-neon/10 transition-all">
+                    QUICKSTART →
+                </a>
+            </div>
+
+            <!-- Terminal snippet -->
+            <div
+                class="mt-16 glow-border rounded-lg bg-surface/80 backdrop-blur p-6 text-left max-w-lg mx-auto font-mono text-sm">
+                <div class="flex gap-2 mb-4">
+                    <span class="w-3 h-3 rounded-full bg-red-500/60"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-500/60"></span>
+                    <span class="w-3 h-3 rounded-full bg-neon/60"></span>
+                </div>
+                <p class="text-gray-500 text-xs mb-2"># One command. Full stack.</p>
+                <p><span class="text-neon">$</span> <span class="text-white">docker-compose up --build -d</span></p>
+                <p class="text-gray-600 text-xs mt-3">✓ backend healthy</p>
+                <p class="text-gray-600 text-xs">✓ frontend built — PWA ready</p>
+                <p class="text-neon text-xs mt-1">▋<span class="animate-blink">_</span></p>
+            </div>
+
+            <!-- Badges row -->
+            <div class="flex flex-wrap justify-center gap-3 mt-10">
+                <span class="px-3 py-1 bg-surface border border-white/5 rounded text-xs font-mono text-gray-500">FastAPI
+                    0.115</span>
+                <span class="px-3 py-1 bg-surface border border-white/5 rounded text-xs font-mono text-gray-500">React
+                    18 PWA</span>
+                <span class="px-3 py-1 bg-surface border border-white/5 rounded text-xs font-mono text-gray-500">Docker
+                    Ready</span>
+                <span class="px-3 py-1 bg-surface border border-neon/10 rounded text-xs font-mono text-neon">22/22 tests
+                    ✓</span>
+                <span class="px-3 py-1 bg-surface border border-white/5 rounded text-xs font-mono text-gray-500">MIT
+                    License</span>
+                <span class="px-3 py-1 bg-surface border border-white/5 rounded text-xs font-mono text-gray-500">Zero
+                    Cloud</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FEATURES ══════════════════════════════════════════════════ -->
+    <section id="features" class="py-24 px-6 border-t border-neon/10">
+        <div class="max-w-6xl mx-auto">
+
+            <p class="font-mono text-neon text-xs tracking-[0.4em] mb-3 opacity-70 text-center">// WHY HEIST.EXE</p>
+            <h2 class="font-display font-bold text-4xl md:text-5xl text-white text-center mb-16">
+                The mission <span class="text-neon">briefing</span>
+            </h2>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <div class="feature-card glow-border rounded-xl bg-surface p-6 transition-all duration-300">
+                    <div class="text-3xl mb-4">📡</div>
+                    <h3 class="font-display font-bold text-white text-lg mb-2">Sovereign Stack</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        Zero cloud dependencies. OpenStreetMap for maps, SQLite for data, Docker for deployment. Runs
+                        completely offline on your hardware.
+                    </p>
+                </div>
+
+                <div class="feature-card glow-border rounded-xl bg-surface p-6 transition-all duration-300">
+                    <div class="text-3xl mb-4">📱</div>
+                    <h3 class="font-display font-bold text-white text-lg mb-2">Instant PWA</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        Players install the app directly from a URL — no App Store, no account. Works on every iPhone
+                        and Android device like a native app.
+                    </p>
+                </div>
+
+                <div class="feature-card glow-border rounded-xl bg-surface p-6 transition-all duration-300">
+                    <div class="text-3xl mb-4">🧩</div>
+                    <h3 class="font-display font-bold text-white text-lg mb-2">Real-World GPS</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        Missions use real GPS coordinates in your neighbourhood. Waypoints, radius detection, enigmas,
+                        QR codes — all in the real streets.
+                    </p>
+                </div>
+
+                <div class="feature-card glow-border rounded-xl bg-surface p-6 transition-all duration-300">
+                    <div class="text-3xl mb-4">⚡</div>
+                    <h3 class="font-display font-bold text-white text-lg mb-2">Live Countdown</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        WebSocket-powered mission timer. Every second counts. Dad watches the clock from the admin panel
+                        while son sprints across the district.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Flow row-->
+            <div class="mt-20 glow-border rounded-2xl bg-surface/50 p-10">
+                <h3 class="font-mono text-center text-neon text-xs tracking-widest mb-10 opacity-70">// HOW IT WORKS
+                </h3>
+                <div class="grid md:grid-cols-5 gap-4 items-start">
+
+                    <div class="text-center">
+                        <div
+                            class="w-12 h-12 rounded-full border border-neon/30 bg-neon/5 flex items-center justify-center mx-auto mb-3 font-mono text-neon text-sm">
+                            1</div>
+                        <p class="text-xs text-gray-500 leading-relaxed">Dad opens <code class="text-neon">/admin</code>
+                            and builds a mission</p>
+                    </div>
+                    <div class="hidden md:flex items-center justify-center pt-6 text-neon/30 text-2xl">→</div>
+                    <div class="text-center">
+                        <div
+                            class="w-12 h-12 rounded-full border border-neon/30 bg-neon/5 flex items-center justify-center mx-auto mb-3 font-mono text-neon text-sm">
+                            2</div>
+                        <p class="text-xs text-gray-500 leading-relaxed">Son gets a link + PIN on his phone</p>
+                    </div>
+                    <div class="hidden md:flex items-center justify-center pt-6 text-neon/30 text-2xl">→</div>
+                    <div class="text-center">
+                        <div
+                            class="w-12 h-12 rounded-full border border-neon/30 bg-neon/5 flex items-center justify-center mx-auto mb-3 font-mono text-neon text-sm">
+                            3</div>
+                        <p class="text-xs text-gray-500 leading-relaxed">He hunts waypoints, solves enigmas, earns the
+                            reward 🏆</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ STACK ══════════════════════════════════════════════════════ -->
+    <section id="stack" class="py-24 px-6 border-t border-neon/10">
+        <div class="max-w-4xl mx-auto">
+            <p class="font-mono text-neon text-xs tracking-[0.4em] mb-3 opacity-70 text-center">// TECH STACK — 100%
+                OPEN SOURCE</p>
+            <h2 class="font-display font-bold text-4xl text-white text-center mb-12">
+                Built to <span class="text-neon">last</span>
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="glow-border rounded-lg bg-surface p-4 flex items-center gap-3">
+                    <span class="text-2xl">🐍</span>
+                    <div>
+                        <p class="font-mono text-white text-sm">FastAPI 0.115</p>
+                        <p class="text-xs text-gray-600">Async · JWT · Swagger</p>
+                    </div>
+                </div>
+                <div class="glow-border rounded-lg bg-surface p-4 flex items-center gap-3">
+                    <span class="text-2xl">⚛️</span>
+                    <div>
+                        <p class="font-mono text-white text-sm">React 18 + Vite 5</p>
+                        <p class="text-xs text-gray-600">PWA · Zustand · Tailwind</p>
+                    </div>
+                </div>
+                <div class="glow-border rounded-lg bg-surface p-4 flex items-center gap-3">
+                    <span class="text-2xl">🗺️</span>
+                    <div>
+                        <p class="font-mono text-white text-sm">Leaflet + OSM</p>
+                        <p class="text-xs text-gray-600">Zero API key · Offline</p>
+                    </div>
+                </div>
+                <div class="glow-border rounded-lg bg-surface p-4 flex items-center gap-3">
+                    <span class="text-2xl">🗄️</span>
+                    <div>
+                        <p class="font-mono text-white text-sm">SQLite + aiosqlite</p>
+                        <p class="text-xs text-gray-600">Async · Single file DB</p>
+                    </div>
+                </div>
+                <div class="glow-border rounded-lg bg-surface p-4 flex items-center gap-3">
+                    <span class="text-2xl">📡</span>
+                    <div>
+                        <p class="font-mono text-white text-sm">WebSocket</p>
+                        <p class="text-xs text-gray-600">Live countdown timer</p>
+                    </div>
+                </div>
+                <div class="glow-border rounded-lg bg-surface p-4 flex items-center gap-3">
+                    <span class="text-2xl">🐳</span>
+                    <div>
+                        <p class="font-mono text-white text-sm">Docker + Nginx</p>
+                        <p class="text-xs text-gray-600">One-command deploy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ INSTALL ═══════════════════════════════════════════════════ -->
+    <section id="install" class="py-24 px-6 border-t border-neon/10">
+        <div class="max-w-3xl mx-auto text-center">
+            <p class="font-mono text-neon text-xs tracking-[0.4em] mb-3 opacity-70">// QUICKSTART</p>
+            <h2 class="font-display font-bold text-4xl text-white mb-12">
+                Up in <span class="text-neon">60 seconds</span>
+            </h2>
+
+            <div class="glow-border rounded-xl bg-surface text-left font-mono text-sm overflow-hidden">
+                <div class="bg-white/5 px-6 py-3 flex items-center gap-2 border-b border-white/5">
+                    <span class="w-3 h-3 rounded-full bg-red-500/50"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-500/50"></span>
+                    <span class="w-3 h-3 rounded-full bg-neon/50"></span>
+                    <span class="ml-3 text-xs text-gray-600 tracking-wider">bash</span>
+                </div>
+                <div class="p-6 space-y-2">
+                    <p class="text-gray-600"># Clone and configure</p>
+                    <p><span class="text-neon">$</span> <span class="text-white">git clone
+                            https://github.com/portefolio/heist_exe</span></p>
+                    <p><span class="text-neon">$</span> <span class="text-white">cp .env.example .env</span> <span
+                            class="text-gray-600">&nbsp;&nbsp;# edit ADMIN_KEY</span></p>
+                    <br />
+                    <p class="text-gray-600"># Start the full stack</p>
+                    <p><span class="text-neon">$</span> <span class="text-white">docker-compose up --build -d</span></p>
+                    <br />
+                    <p class="text-gray-600"># Seed the Tétreaultville demo mission</p>
+                    <p><span class="text-neon">$</span> <span class="text-white">make seed</span></p>
+                    <br />
+                    <p class="text-gray-600 text-xs">→ Player app: http://localhost</p>
+                    <p class="text-gray-600 text-xs">→ Admin panel: http://localhost/admin</p>
+                    <p class="text-gray-600 text-xs">→ Swagger API: http://localhost/api/docs</p>
+                </div>
+            </div>
+
+            <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://github.com/portefolio/heist_exe"
+                    class="px-8 py-3.5 bg-neon text-dark font-display font-bold text-sm tracking-wider rounded hover:bg-neon-dim transition-all hover:scale-105">
+                    ★ STAR ON GITHUB
+                </a>
+                <a href="https://github.com/portefolio/heist_exe/blob/main/CHANGELOG.md"
+                    class="px-8 py-3.5 border border-white/10 text-gray-400 font-mono text-sm tracking-wider rounded hover:border-neon/30 hover:text-neon transition-all">
+                    CHANGELOG v1.0.0
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FOOTER ════════════════════════════════════════════════════ -->
+    <footer class="border-t border-neon/10 py-12 px-6">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <p class="font-mono text-neon text-sm animate-flicker">HEIST.EXE <span
+                        class="text-gray-600">v1.0.0</span></p>
+                <p class="text-xs text-gray-600 mt-1 font-mono">Built in Montréal · Tétreaultville District · 2025</p>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="https://github.com/portefolio/heist_exe/blob/main/LICENSE"
+                    class="text-xs font-mono text-gray-600 hover:text-neon transition-colors">MIT License</a>
+                <a href="https://github.com/portefolio/heist_exe/blob/main/CHANGELOG.md"
+                    class="text-xs font-mono text-gray-600 hover:text-neon transition-colors">Changelog</a>
+                <a href="https://github.com/portefolio/heist_exe"
+                    class="text-xs font-mono text-gray-600 hover:text-neon transition-colors">GitHub ↗</a>
+            </div>
+            <p class="text-xs text-gray-700 italic font-mono text-center md:text-right">
+                For every father who wants his son to live<br />a real adventure.
+            </p>
+        </div>
+    </footer>
+
+</body>
+
+</html>

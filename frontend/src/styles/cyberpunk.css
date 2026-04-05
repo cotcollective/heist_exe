@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Reset & base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #0a0a0a;
+  color: #e8e8e8;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* Safe areas iOS */
+.pt-safe { padding-top: env(safe-area-inset-top, 1.5rem); }
+
+/* ── Screen container ───────────────────────────────────────────────────────── */
+.hx-screen {
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #0a0a0a;
+  position: relative;
+}
+
+/* Scanline overlay subtil */
+.hx-screen::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.04) 2px,
+    rgba(0,0,0,0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Form elements ───────────────────────────────────────────────────────────── */
+.hx-field { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.hx-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #555;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.hx-input {
+  background: #111;
+  border: 1px solid #1f1f1f;
+  border-radius: 4px;
+  color: #e8e8e8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  padding: 0.7rem 0.85rem;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.hx-input:focus { border-color: #00d4aa; }
+.hx-input::placeholder { color: #333; }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────────── */
+.hx-btn-primary {
+  background: #00d4aa;
+  color: #0a0a0a;
+  border: none;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0.8rem 1.25rem;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: background 0.15s, transform 0.1s;
+}
+.hx-btn-primary:hover:not(:disabled)  { background: #009977; }
+.hx-btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.hx-btn-primary:disabled { background: #1f1f1f; color: #333; cursor: not-allowed; }
+
+.hx-btn-ghost {
+  background: transparent;
+  color: #555;
+  border: 1px solid #1f1f1f;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.hx-btn-ghost:hover { border-color: #555; color: #e8e8e8; }
+
+/* ── Equalizer animation (AudioPlayer) ──────────────────────────────────────── */
+@keyframes equalizer {
+  from { transform: scaleY(0.3); }
+  to   { transform: scaleY(1.0); }
+}
+
+/* ── Leaflet overrides (dark map) ───────────────────────────────────────────── */
+.leaflet-container {
+  background: #0a0a0a !important;
+  font-family: 'JetBrains Mono', monospace;
+}
+.leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9); }
+.leaflet-control-attribution { display: none; }
+
+/* ── QR Scanner — overrides html5-qrcode UI ─────────────────────────────────── */
+#qr-reader, [id^="qr-scanner-"] {
+  border: none !important;
+  background: #0a0a0a !important;
+  width: 100% !important;
+}
+#qr-reader video, [id^="qr-scanner-"] video {
+  width: 100% !important;
+  border-radius: 4px;
+}
+#qr-reader__scan_region, [id^="qr-scanner-"] > div:first-child {
+  background: #0a0a0a !important;
+  border: 1px solid #1f1f1f !important;
+  border-radius: 4px;
+}
+#qr-reader__dashboard, [id^="qr-scanner-"] > div:last-child {
+  background: #111 !important;
+  border-top: 1px solid #1f1f1f !important;
+  padding: 8px !important;
+}
+#qr-reader__dashboard button,
+[id^="qr-scanner-"] button {
+  background: #1f1f1f !important;
+  color: #888 !important;
+  border: 1px solid #2a2a2a !important;
+  border-radius: 3px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+  cursor: pointer;
+}
+#qr-reader__dashboard button:hover { color: #e8e8e8 !important; }
+#qr-reader__status_span,
+[id^="qr-scanner-"] span { color: #555 !important; font-size: 11px !important; }
+#qr-reader select { background: #1f1f1f !important; color: #888 !important; border: 1px solid #2a2a2a !important; }
+#qr-reader img { display: none !important; } /* cache le logo html5-qrcode */
+
+/* ── Map admin — dans WaypointEditor (pas d'invert, map normale) ─────────────── */
+.admin-map .leaflet-tile { filter: none !important; }
+.admin-map .leaflet-container { background: #e8e8e8 !important; }
+
+/* ── Leaflet popup dark ──────────────────────────────────────────────────────── */
+.leaflet-popup-content-wrapper {
+  background: #111 !important;
+  border: 1px solid #1f1f1f !important;
+  color: #e8e8e8 !important;
+  border-radius: 4px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 12px !important;
+}
+.leaflet-popup-tip { background: #111 !important; }
+.leaflet-popup-close-button { color: #555 !important; }
+
+/* ── Bottom nav safe area ────────────────────────────────────────────────────── */
+nav.shrink-0 { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 2px; }
+
+/* ── QR Viewfinder container ─────────────────────────────────────────────────── */
+.qr-viewfinder { background: #0a0a0a; min-height: 280px; }
+.qr-viewfinder video { border-radius: 0 !important; }
+
+/* ── Admin map mini height ──────────────────────────────────────────────────── */
+.leaflet-container.admin-map { cursor: crosshair; }
+
+/* ── Step tabs active glow ───────────────────────────────────────────────────── */
+button.bg-hx-teal { box-shadow: 0 0 8px rgba(0,212,170,0.2); }
+
+/* ── Mission card hover teal border ─────────────────────────────────────────── */
+.hover\:border-hx-teal:hover { border-color: #00d4aa; }
+
+/* ── Drag area upload ────────────────────────────────────────────────────────── */
+.border-dashed:hover { box-shadow: inset 0 0 0 1px rgba(0,212,170,0.3); }
+
+/* ── Tabular nums countdown ──────────────────────────────────────────────────── */
+.tabular-nums { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }

@@ -1,0 +1,14 @@
+{
+  "name": "heist-exe",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Urban mission platform — transform any neighbourhood into a spy game.",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report e2e/report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

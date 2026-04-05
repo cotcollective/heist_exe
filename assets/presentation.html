@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEIST.EXE — Urban Mission Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green: #00ff88;
+      --green-dim: #00cc6a;
+      --green-glow: rgba(0, 255, 136, 0.15);
+      --bg: #060a06;
+      --bg2: #0d1117;
+      --bg3: #111a11;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --border: rgba(0, 255, 136, 0.2);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── SCANLINE overlay ─────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    header {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .banner-img {
+      width: 100%;
+      max-height: 480px;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.85);
+    }
+
+    .banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, var(--bg) 100%);
+    }
+
+    .banner-title {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .banner-title h1 {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      color: var(--green);
+      text-shadow: 0 0 30px var(--green), 0 0 60px rgba(0,255,136,0.4);
+      letter-spacing: 0.1em;
+      animation: flicker 4s infinite;
+    }
+
+    .banner-title p {
+      font-family: 'Share Tech Mono', monospace;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      margin-top: 0.4rem;
+      letter-spacing: 0.2em;
+    }
+
+    @keyframes flicker {
+      0%, 95%, 100% { opacity: 1; }
+      96% { opacity: 0.6; }
+      97% { opacity: 1; }
+      98% { opacity: 0.8; }
+    }
+
+    /* ── BADGES ───────────────────────────────────────────── */
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 2rem 1rem;
+      background: var(--bg);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.35rem 0.8rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--green);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .badge:hover {
+      background: var(--green-glow);
+      border-color: var(--green);
+      box-shadow: 0 0 12px var(--green-glow);
+    }
+
+    /* ── SECTIONS ─────────────────────────────────────────── */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    .terminal-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem 2rem;
+      margin: 2rem 0;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      box-shadow: 0 0 30px var(--green-glow);
+      position: relative;
+    }
+
+    .terminal-block::before {
+      content: '● ● ●';
+      position: absolute;
+      top: 0.75rem;
+      left: 1rem;
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+    }
+
+    .terminal-block .line { color: var(--text-dim); }
+    .terminal-block .line.active { color: var(--green); }
+    .terminal-block .line.warn { color: #ffaa00; }
+
+    section {
+      margin: 3.5rem 0;
+    }
+
+    .section-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--green-dim);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    h2 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2 .accent { color: var(--green); }
+
+    p {
+      color: var(--text-dim);
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+
+    .lead {
+      font-size: 1.15rem;
+      color: var(--text);
+      line-height: 1.9;
+      border-left: 3px solid var(--green);
+      padding-left: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    /* ── FLOW IMAGE ───────────────────────────────────────── */
+    .full-image {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 0 40px var(--green-glow);
+      margin: 1.5rem 0;
+    }
+
+    /* ── GRID TABLE ───────────────────────────────────────── */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 2rem;
+      margin: 2rem 0;
+      align-items: start;
+    }
+
+    .flow-col h3 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      color: var(--green);
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+
+    .flow-col .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      margin-bottom: 0.8rem;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    .flow-col .step .num {
+      background: var(--green-glow);
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      min-width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: var(--green);
+      padding-top: 2.5rem;
+      text-shadow: 0 0 20px var(--green);
+    }
+
+    /* ── WAYPOINTS TABLE ──────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 1.5rem 0;
+    }
+
+    th {
+      font-family: 'Share Tech Mono', monospace;
+      text-align: left;
+      padding: 0.6rem 1rem;
+      color: var(--green);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      color: var(--text-dim);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }
+
+    tr:hover td { background: var(--green-glow); color: var(--text); }
+
+    td code {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--green-dim);
+    }
+
+    /* ── STACK GRID ───────────────────────────────────────── */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .stack-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+      transition: all 0.2s;
+    }
+
+    .stack-card:hover {
+      border-color: var(--green);
+      box-shadow: 0 0 20px var(--green-glow);
+      transform: translateY(-2px);
+    }
+
+    .stack-card .emoji { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .stack-card .name {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .stack-card .why { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.3rem; }
+
+    /* ── URL CARDS ────────────────────────────────────────── */
+    .url-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .url-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .url-card:hover {
+      border-color: var(--green);
+      box-shadow: 0 0 20px var(--green-glow);
+    }
+
+    .url-card .url-emoji { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .url-card .url-link {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--green);
+      margin-bottom: 0.3rem;
+    }
+    .url-card .url-desc { font-size: 0.85rem; color: var(--text-dim); }
+
+    /* ── CODE BLOCK ───────────────────────────────────────── */
+    pre {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: #ccc;
+      margin: 1rem 0;
+    }
+
+    pre .cmd { color: var(--green); }
+    pre .comment { color: #555; }
+
+    /* ── SEPARATOR ────────────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* ── FOOTER ───────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 3rem 1rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+    }
+
+    footer .green { color: var(--green); }
+
+    /* ── BLINKING CURSOR ──────────────────────────────────── */
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1em;
+      background: var(--green);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-start infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .flow-grid { grid-template-columns: 1fr; }
+      .flow-arrow { display: none; }
+      h2 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════ -->
+<header>
+  <img class="banner-img" src="heist_banner.png" alt="HEIST.EXE Banner" />
+  <div class="banner-overlay"></div>
+  <div class="banner-title">
+    <h1>HEIST.EXE</h1>
+    <p>TÉTREAULTVILLE DISTRICT &nbsp;·&nbsp; MISSION ACTIVE</p>
+  </div>
+</header>
+
+<!-- ══ BADGES ══════════════════════════════════════════════════ -->
+<div class="badges">
+  <a class="badge" href="https://fastapi.tiangolo.com">⚡ FastAPI 0.115</a>
+  <a class="badge" href="https://react.dev">⚛️ React 18</a>
+  <a class="badge" href="#">🐳 Docker ready</a>
+  <a class="badge" href="#">📱 PWA installable</a>
+  <a class="badge" href="https://openstreetmap.org">🗺️ OpenStreetMap</a>
+  <a class="badge" href="#">🔐 JWT PIN-based</a>
+  <a class="badge" href="#">✅ 22/22 tests passing</a>
+  <a class="badge" href="#">📄 MIT License</a>
+</div>
+
+<!-- ══ MAIN ════════════════════════════════════════════════════ -->
+<main>
+
+  <!-- Hero terminal -->
+  <div class="terminal-block">
+    <div class="line active">&gt; CONNEXION SÉCURISÉE ÉTABLIE</div>
+    <div class="line active">&gt; SECTEUR : TÉTREAULTVILLE — MONTRÉAL</div>
+    <div class="line">&gt; OBJECTIFS CHARGÉS : 3 waypoints</div>
+    <div class="line">&gt; MESSAGE AUDIO : CHIFFRÉ ████████</div>
+    <div class="line warn">&gt; DURÉE DE MISSION : 45:00 ██████░░░░</div>
+    <div class="line active">&gt; EN ATTENTE DE TON PREMIER PAS<span class="cursor"></span></div>
+  </div>
+
+  <!-- ── DESCRIPTION ─────────────────────────────────────── -->
+  <section>
+    <div class="section-label">// MISSION BRIEF</div>
+    <h2>🕵️ C'est <span class="accent">quoi</span> ?</h2>
+    <p class="lead">
+      HEIST.EXE transforme n'importe quel quartier en jeu d'espionnage grandeur nature.
+      Papa crée la mission depuis son bureau. Le fils la vit dans les vraies rues.
+    </p>
+    <p>
+      Waypoints GPS réels, énigmes contextuelles, message audio crypté, countdown en temps réel via WebSocket…
+      Tout ce qu'il faut pour qu'une sortie de quartier devienne une aventure inoubliable.
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ── FLOW ────────────────────────────────────────────── -->
+  <section>
+    <div class="section-label">// GAMEPLAY LOOP</div>
+    <h2>🎬 Comment ça <span class="accent">marche</span></h2>
+
+    <img class="full-image" src="heist_flow.png" alt="Gameplay Flow Diagram" />
+
+    <div class="flow-grid">
+      <div class="flow-col">
+        <h3>👨 PAPA — Coordinateur</h3>
+        <div class="step"><span class="num">1</span> Ouvre <code>/admin</code></div>
+        <div class="step"><span class="num">2</span> Entre la clé secrète</div>
+        <div class="step"><span class="num">3</span> Crée mission : lore + waypoints GPS</div>
+        <div class="step"><span class="num">4</span> Configure les énigmes à chaque point</div>
+        <div class="step"><span class="num">5</span> Upload le message audio crypté 🎧</div>
+        <div class="step"><span class="num">6</span> Envoie le lien + PIN 📲</div>
+      </div>
+
+      <div class="flow-arrow">→</div>
+
+      <div class="flow-col">
+        <h3>📱 FILS — Agent de terrain</h3>
+        <div class="step"><span class="num">1</span> Reçoit le lien, ouvre l'app</div>
+        <div class="step"><span class="num">2</span> Entre le PIN → Briefing crypté 🔐</div>
+        <div class="step"><span class="num">3</span> Écoute le message audio secret</div>
+        <div class="step"><span class="num">4</span> Navigue sur carte OpenStreetMap 🗺️</div>
+        <div class="step"><span class="num">5</span> Trouve le waypoint → résout l'énigme 🧩</div>
+        <div class="step"><span class="num">6</span> Mission accomplie → Récompense 🏆</div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ── SCREENSHOTS ──────────────────────────────────────── -->
+  <section>
+    <div class="section-label">// INTERFACE</div>
+    <h2>📱 L'app en <span class="accent">action</span></h2>
+    <img class="full-image" src="heist_screens.png" alt="App Screenshots" />
+    <p style="text-align:center; font-size:0.85rem; margin-top:0.5rem;">
+      Boot → Map GPS temps réel → Énigme → Victoire
+    </p>
+  </section>
+
+  <hr />
+
+  <!-- ── MISSION DÉMO ─────────────────────────────────────── -->
+  <section>
+    <div class="section-label">// DEMO MISSION INCLUSE</div>
+    <h2>🌆 Tétreaultville, <span class="accent">Montréal</span></h2>
+
+    <div class="terminal-block">
+      <div class="line">&gt; MISSION  : "L'agent X a été compromis. La clé est cachée près de l'eau."</div>
+      <div class="line active">&gt; PIN      : 2077</div>
+      <div class="line">&gt; DURÉE    : 45 minutes</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>WAYPOINT</th>
+          <th>COORDONNÉES</th>
+          <th>ÉNIGME</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>0</td>
+          <td>🌳 Parc L.-O.-Taillon</td>
+          <td><code>45.568, -73.550</code></td>
+          <td>Lattes × numéro civique de la bâtisse rouge</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>🎨 Mural Hochelaga</td>
+          <td><code>45.569, -73.548</code></td>
+          <td>Combien de couleurs dans le mural ?</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>🏁 Dépanneur Taillon</td>
+          <td><code>45.570, -73.547</code></td>
+          <td>La planque finale. Tu mérites les chips.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr />
+
+  <!-- ── DÉMARRAGE ────────────────────────────────────────── -->
+  <section>
+    <div class="section-label">// QUICKSTART</div>
+    <h2>⚡ Démarrer en <span class="accent">60 secondes</span></h2>
+
+    <pre><span class="comment"># Cloner + configurer</span>
+<span class="cmd">git clone</span> https://github.com/ton-user/heist_exe
+<span class="cmd">cp</span> .env.example .env      <span class="comment"># édite ADMIN_KEY</span>
+
+<span class="comment"># Lancer (Docker requis)</span>
+<span class="cmd">docker-compose up --build -d</span>
+
+<span class="comment"># Injecter la mission démo Tétreaultville</span>
+<span class="cmd">make seed</span></pre>
+
+    <div class="url-cards">
+      <a class="url-card" href="http://localhost">
+        <div class="url-emoji">📱</div>
+        <div class="url-link">http://localhost</div>
+        <div class="url-desc">L'agent — PWA installable sur cell</div>
+      </a>
+      <a class="url-card" href="http://localhost/admin">
+        <div class="url-emoji">👨</div>
+        <div class="url-link">http://localhost/admin</div>
+        <div class="url-desc">Papa — Créer et gérer les missions</div>
+      </a>
+      <a class="url-card" href="http://localhost/api/docs">
+        <div class="url-emoji">🔧</div>
+        <div class="url-link">http://localhost/api/docs</div>
+        <div class="url-desc">Swagger API auto-généré</div>
+      </a>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ── STACK ────────────────────────────────────────────── -->
+  <section>
+    <div class="section-label">// TECH STACK — 100% OPEN SOURCE</div>
+    <h2>🛠️ Ce qu'on a <span class="accent">utilisé</span></h2>
+
+    <div class="stack-grid">
+      <div class="stack-card">
+        <div class="emoji">🐍</div>
+        <div class="name">FastAPI 0.115</div>
+        <div class="why">Async natif, léger, Swagger auto</div>
+      </div>
+      <div class="stack-card">
+        <div class="emoji">⚛️</div>
+        <div class="name">React 18 + Vite 5</div>
+        <div class="why">PWA mobile-first, build ultra-rapide</div>
+      </div>
+      <div class="stack-card">
+        <div class="emoji">🗺️</div>
+        <div class="name">Leaflet + OSM</div>
+        <div class="why">Zéro API key, offline-capable</div>
+      </div>
+      <div class="stack-card">
+        <div class="emoji">🔐</div>
+        <div class="name">JWT PIN + bcrypt</div>
+        <div class="why">Simple joueur, robuste côté data</div>
+      </div>
+      <div class="stack-card">
+        <div class="emoji">📡</div>
+        <div class="name">WebSocket</div>
+        <div class="why">Countdown en temps réel</div>
+      </div>
+      <div class="stack-card">
+        <div class="emoji">🎧</div>
+        <div class="name">Howler.js</div>
+        <div class="why">Briefing audio immersif</div>
+      </div>
+      <div class="stack-card">
+        <div class="emoji">📷</div>
+        <div class="name">html5-qrcode</div>
+        <div class="why">Scanner QR sans dépendance native</div>
+      </div>
+      <div class="stack-card">
+        <div class="emoji">🗄️</div>
+        <div class="name">SQLite + aiosqlite</div>
+        <div class="why">Une DB locale, sauvegarde = 1 fichier</div>
+      </div>
+      <div class="stack-card">
+        <div class="emoji">🚀</div>
+        <div class="name">Docker + Nginx</div>
+        <div class="why">Un docker-compose up = tout live</div>
+      </div>
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- ── TESTS ────────────────────────────────────────────── -->
+  <section>
+    <div class="section-label">// TESTING</div>
+    <h2>🧪 <span class="accent">22/22</span> tests passing</h2>
+    <pre><span class="cmd">make test</span>
+
+<span class="comment">========================= test session starts =========================</span>
+tests/test_health.py::test_health                          <span class="cmd">PASSED</span>
+tests/test_admin.py::test_create_mission_success           <span class="cmd">PASSED</span>
+tests/test_admin.py::test_list_missions                    <span class="cmd">PASSED</span>
+tests/test_admin.py::test_delete_mission                   <span class="cmd">PASSED</span>
+tests/test_auth.py::test_auth_bon_pin                      <span class="cmd">PASSED</span>
+tests/test_auth.py::test_me_avec_token_valide              <span class="cmd">PASSED</span>
+tests/test_gameplay.py::test_game_loop_complet             <span class="cmd">PASSED</span>
+<span class="comment">... 15 autres tests ...</span>
+
+<span class="cmd">=================== 22 passed in 18.87s ====================</span></pre>
+  </section>
+
+</main>
+
+<!-- ══ FOOTER ══════════════════════════════════════════════════ -->
+<footer>
+  <p>Fait avec ☕ à <span class="green">Montréal</span> · Tétreaultville District · 2025</p>
+  <p style="margin-top:0.5rem; font-size:0.7rem;">
+    Pour chaque père qui veut que son fils vive une vraie aventure. · MIT License
+  </p>
+</footer>
+
+</body>
+</html>

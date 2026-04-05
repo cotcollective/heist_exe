@@ -1,0 +1,72 @@
+# ══════════════════════════════════════════════
+#  HEIST.EXE — .gitignore
+#  Tolérance zéro pour les fuites de données.
+# ══════════════════════════════════════════════
+
+# ── Secrets & Environnement ───────────────────
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+secrets/
+
+# ── Base de données & Médias (données runtime) ─
+*.db
+*.sqlite
+*.sqlite3
+backend/data/
+backend/media/
+
+# ── Python ────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ── Node / Frontend ───────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Tests E2E / Playwright ────────────────────
+e2e/report/
+test-results/
+playwright-report/
+
+# ── Docker ────────────────────────────────────
+docker-compose.override.yml
+
+# ── OS ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ───────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.orig
+*~
+
+# ── Logs ──────────────────────────────────────
+*.log
+logs/
