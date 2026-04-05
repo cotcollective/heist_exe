@@ -15,7 +15,7 @@ import urllib.request
 import urllib.error
 import os
 
-BASE_URL = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "http://localhost/api"
+BASE_URL = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "http://localhost:8000"
 ADMIN_KEY = os.getenv("ADMIN_KEY", "admin-secret-key-change-me")
 
 MISSION = {

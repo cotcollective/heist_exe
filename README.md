@@ -103,15 +103,19 @@ Lance `make seed` et une mission complète est déjà injectée et prête à jou
 ## ⚡ Démarrer en 60 secondes
 
 ```bash
-# Cloner + configurer
+# 1. Nettoyer tout dossier précédent
+rm -rf heist_exe
+
+# 2. Cloner + configurer
 git clone https://github.com/cotcollective/heist_exe
-cd heist_exe              # ← ne pas oublier !
+cd heist_exe
 cp .env.example .env      # édite ADMIN_KEY
 
-# Lancer (Docker requis)
+# 3. Lancer (Docker requis)
 docker-compose up --build -d
 
-# Injecter la mission démo Tétreaultville
+# 4. Injecter la mission démo Tétreaultville
+# Attend que le backend soit "Healthy", puis :
 make seed
 ```
 

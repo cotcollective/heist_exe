@@ -19,8 +19,8 @@ restart:
 
 # ── Seed ─────────────────────────────────────────────────────────────────────
 seed:
-	@echo "Injection mission Tétreaultville via Docker..."
-	docker-compose exec backend python3 seed.py http://localhost:8000/api
+	@echo "Injection mission Tétreaultville..."
+	docker-compose exec backend python3 seed.py http://localhost:8000
 
 seed-remote:
 	@read -p "URL de l'API (ex: http://monserveur.com): " url; \
