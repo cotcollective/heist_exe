@@ -131,47 +131,34 @@ make seed
 
 ---
 
-## 📡 Comment le fils accède depuis son cell ?
+## 📡 Donner accès au fils depuis son cell
 
-Papa héberge le serveur sur son ordi. Le fils joue depuis son cell. Deux scénarios :
+Papa fait tourner le serveur sur son ordi. Le fils joue depuis son téléphone.
 
-### Scénario A — Même WiFi (le plus simple)
-
-Papa et le fils sont sur le **même réseau** (WiFi maison, hotspot, etc.) :
+**Une seule commande :**
 
 ```bash
-# Sur l'ordi de Papa — affiche l'URL à envoyer au fils
-make ip
-# → http://192.168.1.X:8080
+# L'app doit tourner (make up), puis :
+make share
 ```
 
-1. Papa exécute `make ip` → obtient l'URL locale
-2. Envoie l'URL au fils **par SMS**
-3. Le fils ouvre l'URL sur son cell
-4. Safari/Chrome → **"Partager" → "Sur l'écran d'accueil"** → PWA installée ✅
+`make share` crée un **lien public temporaire** et affiche les instructions directement dans le terminal :
 
-### Scénario B — Réseaux différents (tunnel public)
+```
+  ==================================================
+  🎮 HEIST.EXE — PARTAGER AVEC LE FILS
+  ==================================================
 
-Le fils est **sur data mobile** ou un réseau différent :
+  ✅ Une fois l'URL affichée :
+     1. Copie l'URL https://...
+     2. Envoie-la par SMS au fils
+     3. Il l'ouvre sur son cell → mission active !
 
-```bash
-# 1. Installer ngrok (une seule fois)
-sudo snap install ngrok          # Linux
-# ou : brew install ngrok        # Mac
-# ou : télécharger sur ngrok.com
-
-# 2. Lancer le tunnel (l'app doit déjà tourner)
-make tunnel
-# → Forwarding https://abc123.ngrok-free.app → localhost:8080
+  your url is: https://xyz.loca.lt   ← COPIER ÇA
 ```
 
-ngrok génère une **URL publique temporaire** (ex: `https://abc123.ngrok-free.app`). Papa envoie ça au fils par SMS — ça marche depuis n'importe où dans le monde.
-
-> ⚠️ L'URL change à chaque lancement. Pour une URL fixe, créer un compte ngrok gratuit et configurer un `authtoken`.
-
-### Scénario C — Déploiement permanent (avancé)
-
-Pour une version permanente (VPS, Raspberry Pi, etc.), consulte la section Déploiement Production plus bas.
+> 💡 Fonctionne depuis **n'importe où** (même WiFi, data mobile, 4G...). Aucune installation requise.  
+> `Ctrl+C` pour fermer le tunnel à la fin de la mission.
 
 ---
 

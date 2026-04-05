@@ -48,21 +48,23 @@ dev-backend:
 dev-frontend:
 	cd frontend && npm install && npm run dev
 
-# ── Réseau — accès depuis le cell du fils ────────────────────────────────────
-ip:
+# ── Partager avec le fils (tunnel public auto) ───────────────────────────────
+share:
 	@echo ""
-	@echo "  📱 URL WiFi pour le cell du fils (même réseau) :"
-	@IP=$$(hostname -I | awk '{print $$1}') && echo "  http://$$IP:$${APP_PORT:-8080}"
+	@echo "  =============================================="
+	@echo "  🎮 HEIST.EXE — PARTAGER AVEC LE FILS"
+	@echo "  =============================================="
 	@echo ""
-	@echo "  Envoie cette URL par SMS. Sur son cell :"
-	@echo "  Safari/Chrome → 'Partager' → 'Sur l'écran d'accueil'"
+	@echo "  ⏳ Création du tunnel... (ça prend 5-10 sec)"
 	@echo ""
-
-tunnel:
+	@echo "  ✅ Une fois l'URL affichée :"
+	@echo "     1. Copie l'URL https://..."
+	@echo "     2. Envoie-la par SMS au fils"
+	@echo "     3. Il l'ouvre sur son cell → mission active !"
 	@echo ""
-	@echo "  🔐 Tunnel public ngrok (réseaux différents) ..."
-	@which ngrok > /dev/null 2>&1 || (echo "  ngrok requis : sudo snap install ngrok" && exit 1)
-	ngrok http $${APP_PORT:-8080}
+	@echo "  (Ctrl+C pour fermer le tunnel à la fin)"
+	@echo ""
+	npx --yes localtunnel --port $${APP_PORT:-8080} --print-requests
 
 # ── Lint / check ─────────────────────────────────────────────────────────────
 lint:
@@ -96,11 +98,10 @@ help:
 	@echo "  make logs         Suivre les logs"
 	@echo "  make seed         Injecter mission Tétreaultville"
 	@echo "  make test         Lancer les tests"
-	@echo "  ─── Réseau (cell du fils) ────────────────"
-	@echo "  make ip           URL WiFi locale → envoyer au fils (même réseau)"
-	@echo "  make tunnel       Tunnel public ngrok → fils sur data mobile"
+	@echo "  ─── Pour le fils ─────────────────────────"
+	@echo "  make share         Lien public → envoyer au fils par SMS"
 	@echo "  ─── Dev ──────────────────────────────────"
-	@echo "  make dev-backend  Backend local (sans Docker)"
-	@echo "  make dev-frontend Frontend local (Vite dev server)"
-	@echo "  make clean        Tout nettoyer"
+	@echo "  make dev-backend   Backend local (sans Docker)"
+	@echo "  make dev-frontend  Frontend local (Vite dev server)"
+	@echo "  make clean         Tout nettoyer"
 	@echo ""
