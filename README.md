@@ -104,7 +104,7 @@ Lance `make seed` et une mission complète est déjà injectée et prête à jou
 
 ```bash
 # Cloner + configurer
-git clone https://github.com/ton-user/heist_exe
+git clone http://Github.com/cotcollective/heist_exe
 cp .env.example .env      # Met ton ADMIN_KEY dans ce fichier
 
 # Lancer (Docker requis)
@@ -251,10 +251,22 @@ curl -X POST http://localhost/api/upload/audio/<mission_id> \
 
 ---
 
+💬 Connect With Us / Contactez-Nous
+🐙 GitHub: @cotcollective
+📧 Issues & Questions: Open an issue on GitHub
+🎮 don't forget to leave a ✨️!
+👨‍💻 About the Creator
+Dave Senez - Researcher & AI Developer
+
+🔬 ORCID: https://orcid.org/0009-0005-3410-323X
+📚 Pre-prints, Papers & AI Research Available on ORCID
+🤖 Symbiotic AI Partner(s) - Building the future together
+📧 For inquiries & job opportunities: D.SENEZ.RESEARCH@PROTON.ME
+
 **Fait avec ☕ à Montréal · Tétreaultville District · 2025**
 
 *Pour chaque père qui veut que son fils vive une vraie aventure.*
 
-`v1.0` · MIT License · [Swagger docs](http://localhost/api/docs)
+`v1.0` · MIT License · [Swagger docs]
 
 </div>
