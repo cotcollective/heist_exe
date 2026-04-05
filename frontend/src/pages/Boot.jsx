@@ -149,8 +149,28 @@ export default function Boot() {
           <div className="font-mono text-center text-hx-sub text-sm">
             <div className="text-3xl mb-4">⊘</div>
             Aucune mission active.<br />
-            <span className="text-xs text-hx-dim">Attends le signal de l'agent coordinateur.</span>
+            <span className="text-xs text-hx-dim">Attends le signal de l&apos;agent coordinateur.</span>
+            <div className="mt-6">
+              <button
+                onClick={() => navigate('/admin')}
+                className="text-hx-teal text-xs tracking-widest font-mono border border-hx-teal/30 px-4 py-2 rounded hover:bg-hx-teal/5 transition-colors"
+              >
+                🛡️ ACCÈS COORDINATEUR (PAPA)
+              </button>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* Footer discret — Papa peut toujours accéder à l'admin */}
+      {!selected && (
+        <div className="pt-4 pb-2 text-center">
+          <button
+            onClick={() => navigate('/admin')}
+            className="text-hx-dim text-xs font-mono hover:text-hx-sub transition-colors"
+          >
+            // accès coordinateur
+          </button>
         </div>
       )}
     </div>

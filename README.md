@@ -119,13 +119,17 @@ docker-compose up --build -d
 make seed
 ```
 
-| 🌐 URL | 👤 Pour qui |
-|--------|------------|
-| `http://localhost` | 📱 L'agent — PWA installable directement sur cell |
-| `http://localhost/admin` | 👨 Papa — créer et gérer les missions |
-| `http://localhost/api/docs` | 🔧 Swagger auto-généré |
+### 🎭 Qui va où ?
 
-> 💡 **PWA** = installable sur iPhone/Android sans App Store. L'agent tape l'URL, clique "Ajouter à l'écran d'accueil" — c'est une vraie app.
+| 🌐 URL | 👤 Pour qui | Description |
+|--------|-------------|-------------|
+| `http://localhost:8080` | � **LE FILS (l'Agent)** | Écran de mission, GPS, énigmes. Installez comme PWA sur son cell. |
+| `http://localhost:8080/admin` | 👨 **PAPA (le Coordinateur)** | Créer/gérer les missions. Accessible aussi via le lien en bas de la page d'accueil. |
+| `http://localhost:8080/api/docs` | 🔧 Développeur | Swagger auto-généré |
+
+> 💡 **PWA** = installable sur iPhone/Android sans App Store. Le fils tape `http://[IP-DE-TON-PC]:8080` sur son cell (même WiFi), clique "Ajouter à l'écran d'accueil" — c'est une vraie app.
+
+> 🛡️ **Pour Papa** : L'écran d'accueil affiche un lien discret `// accès coordinateur` en bas — ou tape directement `/admin`. Le mot de passe = `ADMIN_KEY` dans ton `.env`.
 
 ---
 
