@@ -1,4 +1,6 @@
-const BASE = '/api'
+import { API_BASE } from '../lib/apiBase'
+
+const BASE = `${API_BASE}/api`
 
 async function request(method, path, body, token) {
   const headers = {}
@@ -59,7 +61,7 @@ export const adminApi = {
 export function createCountdownSocket(missionId, sessionId, durationSeconds, callbacks) {
   const proto  = window.location.protocol === 'https:' ? 'wss' : 'ws'
   const host   = import.meta.env.DEV ? 'localhost:8000' : window.location.host
-  const prefix = import.meta.env.DEV ? '' : '/api'
+  const prefix = import.meta.env.DEV ? '' : `${API_BASE}/api`
   const ws     = new WebSocket(`${proto}://${host}${prefix}/ws/countdown/${missionId}/${sessionId}`)
 
   ws.onopen    = () => ws.send(JSON.stringify({ action: 'start', duration_seconds: durationSeconds }))

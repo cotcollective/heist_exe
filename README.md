@@ -492,3 +492,54 @@ Détacher ne supprime pas : la partie redevient locale, avec son avancement.
 Les jetons sont stockés **hachés** (sha256). Personne ne les tape jamais, donc
 ça ne coûte aucune friction, mais une fuite de base ne donne pas de sessions.
 
+## 🌐 Frontend statique (Surge) + API distante
+
+Le frontend peut vivre sur un CDN statique et l'API rester sur la machine,
+derrière le tunnel. C'est un découpage valide, avec deux conséquences à
+assumer.
+
+```bash
+./deploy/surge.sh heist-exe.surge.sh
+# ou vers une autre API
+API=https://chasse.legarsdeschandails.store ./deploy/surge.sh mon-domaine.surge.sh
+```
+
+Le script construit avec `VITE_API_BASE`, copie `index.html` en `200.html`
+(Surge sert ce fichier pour toute route inconnue — c'est ce qui garde les URLs
+propres comme `/world` ou `/hunt`), écrit le `CNAME`, puis publie.
+
+### Ce qu'il faut autoriser côté serveur
+
+Origines **explicites**, jamais `*` :
+
+```bash
+CORS_ORIGINS="https://heist-exe.surge.sh,http://localhost:5173"
+```
+
+L'API refuse de démarrer si `CORS_ORIGINS` contient une étoile. La raison :
+les jetons de partie voyagent en en-tête (`X-Party-Token`), et un wildcard
+laisserait n'importe quelle page web les utiliser depuis le navigateur d'un
+joueur.
+
+Pas de cookies non plus — `allow_credentials=False`. L'identité passe par des
+en-têtes, donc rien à envoyer automatiquement.
+
+### Les deux conséquences
+
+**Deux cibles à garder cohérentes.** Le frontend se déploie sur Surge, le
+backend sur la machine. Si tu changes un contrat d'API, il faut reconstruire le
+frontend — `VITE_API_BASE` est inlinée au build, un site statique ne peut pas
+changer d'API sans être reconstruit.
+
+**Si l'API tombe, le site se charge quand même.** En mono-port, tout est up ou
+tout est down, et la panne est évidente. Séparé, le CDN répond 200 alors que
+rien ne fonctionne — la panne devient silencieuse côté page d'accueil.
+
+### Pourquoi garder les deux
+
+Le mono-port reste le mode par défaut : un tunnel, une cible, zéro CORS, et la
+panne est visible. Le mode Surge sert quand tu veux que le frontend soit servi
+par un vrai CDN, ou quand tu veux montrer le jeu sans exposer ton serveur pour
+les assets.
+
+Les deux builds sortent du même code. Rien à maintenir en double.

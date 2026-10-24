@@ -33,14 +33,35 @@ app = FastAPI(
     redoc_url=None,
 )
 
-origins = os.getenv("CORS_ORIGINS", "http://localhost").split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ── CORS ────────────────────────────────────────────────────────────────────
+# En mono-port, le frontend et l'API partagent l'origine : rien à autoriser.
+# Dès que le frontend est servi ailleurs (CDN statique, Surge), il faut une
+# liste EXPLICITE — jamais « * », parce que les jetons de partie voyagent en
+# en-tête et qu'un wildcard laisserait n'importe quelle page les utiliser
+# depuis le navigateur d'un joueur.
+#
+#   CORS_ORIGINS="https://heist-exe.surge.sh,http://localhost:5173"
+#
+# Pas d'étoile : on refuse de démarrer avec, plutôt que de la traduire en
+# wildcard silencieux.
+_raw_origins = os.getenv("CORS_ORIGINS", "")
+ORIGINS = [o.strip().rstrip("/") for o in _raw_origins.split(",") if o.strip()]
+if "*" in ORIGINS:
+    raise RuntimeError(
+        "CORS_ORIGINS ne peut pas contenir '*' : les jetons de partie "
+        "voyagent en en-tête. Lister les origines explicitement."
+    )
+
+if ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ORIGINS,
+        # Pas de cookies : l'identité passe par X-Party-Token et Authorization.
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-Party-Token", "X-Account-Token"],
+        max_age=600,
+    )
 
 # Serve media files directly (audio clips)
 media_path = os.getenv("MEDIA_PATH", "/app/media")

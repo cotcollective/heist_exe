@@ -10,6 +10,8 @@
  * sans formulaire.
  */
 
+import { apiUrl } from './apiBase'
+
 const PARTY_KEY = 'hx_party'
 const ACCOUNT_KEY = 'hx_account'
 
@@ -54,7 +56,7 @@ async function call(path, { method = 'GET', token, body } = {}) {
   if (token) headers['X-Party-Token'] = token
   if (body !== undefined) headers['Content-Type'] = 'application/json'
 
-  const res = await fetch(`/api/play${path}`, {
+  const res = await fetch(apiUrl(`/play${path}`), {
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -128,7 +130,7 @@ export function hasAccount() {
  * @returns {{ account, token }} — le jeton de compte n'est montré qu'ici.
  */
 export async function createAccountAndAttach(email, label = null) {
-  const res = await fetch('/api/play/accounts', {
+  const res = await fetch(apiUrl('/play/accounts'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, label }),
@@ -144,7 +146,7 @@ export async function createAccountAndAttach(email, label = null) {
 
   const p = currentParty()
   if (p) {
-    await fetch(`/api/play/accounts/${account.id}/parties`, {
+    await fetch(apiUrl(`/play/accounts/${account.id}/parties`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Account-Token': token },
       body: JSON.stringify({ party_id: p.id, party_token: p.token }),
@@ -159,7 +161,7 @@ export async function createAccountAndAttach(email, label = null) {
 export async function listAccountParties() {
   const a = currentAccount()
   if (!a) return []
-  const res = await fetch(`/api/play/accounts/${a.id}/parties`, {
+  const res = await fetch(apiUrl(`/play/accounts/${a.id}/parties`), {
     headers: { 'X-Account-Token': a.token },
   })
   if (!res.ok) return []
