@@ -543,3 +543,45 @@ par un vrai CDN, ou quand tu veux montrer le jeu sans exposer ton serveur pour
 les assets.
 
 Les deux builds sortent du même code. Rien à maintenir en double.
+
+## 🎁 Cinq missions au premier lancement
+
+Une base neuve arrive avec cinq chasses complètes dans Tétreaultville — de
+quoi jouer tout de suite sans construire quoi que ce soit.
+
+| Mission | Durée | Étapes | PIN |
+|---------|-------|--------|-----|
+| Le Trésor du Parc | 20 min | 3 | `1111` |
+| Le Vieux Tétreault | 30 min | 4 | `2222` |
+| Le Dépanneur Mystère | 25 min | 3 | `3333` |
+| La Grande Promenade | 35 min | 4 | `4444` |
+| Le Fantôme du Boulevard | 15 min | 3 | `5555` |
+
+Semées **une seule fois**, à la création de la base. Si tu les effaces, elles
+restent effacées — le drapeau `default_missions_v1` vit dans `app_settings`.
+Sans ce drapeau, un papa qui repart à zéro les verrait revenir au redémarrage
+et croirait que la suppression ne marche pas.
+
+`SEED_DEFAULTS=0` désactive complètement le semis (tests, déploiement propre).
+
+### Ce qu'elles sont, et ce qu'elles ne sont pas
+
+Les coordonnées pointent **le secteur**, pas un objet précis au centimètre.
+Les indices décrivent quoi chercher (« le banc face au pont », « la brique
+rouge avec les fenêtres hautes »), et les énigmes se répondent à l'œil ou par
+déduction simple — jamais par culture générale, un enfant de huit ans doit
+finir seul.
+
+Ce sont des **points de départ à éditer** dans le constructeur, pas des
+chasses à jouer les yeux fermés. Un papa qui veut du sur-mesure change les
+points ; un papa pressé joue tel quel et ça fonctionne.
+
+Les rayons sont volontairement généreux (20 à 30 m : sous 20 m, un enfant
+cherche une aiguille dans un parc).
+
+### Intégrité du parcours
+
+Une réponse ne compte que pour **l'étape où l'on est**. Répondre trois fois
+la même énigme n'avance plus de trois cases, et sauter à la dernière étape
+renvoie `409`. Sans ce garde-fou, une chasse au trésor se terminait assis sur
+un banc — c'est tout le jeu qui tombait.

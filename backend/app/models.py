@@ -198,3 +198,15 @@ class Party(Base):
     updated_at:  Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     account: Mapped["Account | None"] = relationship(back_populates="parties")
+
+class AppSetting(Base):
+    """Petit magasin clé/valeur pour l'état de l'application.
+
+    Sert d'abord à ne semer les missions par défaut qu'une seule fois : si le
+    papa les efface, elles ne doivent pas revenir au redémarrage suivant.
+    """
+    __tablename__ = "app_settings"
+
+    key:   Mapped[str]           = mapped_column(String(64), primary_key=True)
+    value: Mapped[str]           = mapped_column(Text, default="")
+    set_at: Mapped[datetime]     = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))

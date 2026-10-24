@@ -21,6 +21,7 @@ SERVE_STATIC = os.getenv("SERVE_STATIC", "1") != "0" and (STATIC_DIR / "index.ht
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+
     os.makedirs(os.getenv("MEDIA_PATH", "/app/media"), exist_ok=True)
     yield
 

@@ -43,3 +43,15 @@ async def init_db():
         )
         await conn.run_sync(Base.metadata.create_all)
         await apply_migrations(conn, baseline_fresh=not had_waypoints)
+
+    # Cinq missions de départ, semées une seule fois.
+    #
+    # Ici plutôt que dans le lifespan du serveur : n'importe quel point
+    # d'entrée qui initialise la base (serveur, script, test d'intégration)
+    # obtient les mêmes missions. Sinon le comportement dépend de par où on
+    # entre, ce qui est exactement le genre d'écart qui ne se voit pas.
+    if os.getenv("SEED_DEFAULTS", "1") != "0":
+        from app.seed_defaults import seed_default_missions
+
+        async with AsyncSessionLocal() as session:
+            await seed_default_missions(session)

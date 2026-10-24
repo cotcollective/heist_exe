@@ -5,6 +5,15 @@ import os
 # d'import n'a plus d'importance.
 os.environ.setdefault("ADMIN_KEY", "heist123")
 
+# Les tests hachent beaucoup (PIN + une réponse d'énigme par waypoint, et le
+# semis crée 17 hachures à lui seul). Aux rounds de production, la suite passe
+# de 25 s à 80 s. On baisse le coût ICI UNIQUEMENT : la production garde les
+# rounds par défaut, et les tests vérifient toujours de vrais hachages bcrypt.
+import app.auth as _auth_mod
+from passlib.context import CryptContext as _CryptContext
+
+_auth_mod.pwd_context = _CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=4)
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport

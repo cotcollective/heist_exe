@@ -52,6 +52,28 @@ async def submit_answer(
     session = await db.get(PlayerSession, player["session_id"])
     mission = await db.get(Mission, player["mission_id"])
 
+    # On ne peut répondre que pour l'étape où l'on est.
+    #
+    # Sans ce garde-fou, répondre trois fois la même énigme faisait avancer
+    # trois fois : la session incrémentait `current_waypoint` à chaque bonne
+    # réponse, sans jamais vérifier que la réponse portait sur l'étape
+    # courante. Une chasse au trésor qu'on termine assis sur un banc ne vaut
+    # rien — c'est tout le jeu qui tombe.
+    if waypoint.order != session.current_waypoint:
+        if waypoint.order < session.current_waypoint:
+            # Déjà franchie : on ne punit pas, on ne fait simplement pas avancer.
+            return ProgressOut(
+                waypoint_id=payload.waypoint_id,
+                correct=True,
+                next_waypoint=None,
+                mission_complete=False,
+            )
+        # En avance sur le parcours : refus explicite.
+        raise HTTPException(
+            status_code=409,
+            detail="Cette étape n'est pas encore accessible.",
+        )
+
     next_order = session.current_waypoint + 1
     result = await db.execute(
         select(Waypoint)
