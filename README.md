@@ -431,3 +431,64 @@ Dave Senez - Researcher & AI Developer
 `v1.0` · MIT License · [Swagger docs]
 
 </div>
+
+## 🎟️ Parties et comptes
+
+Le jeu ne demande **aucun compte pour jouer**. On ouvre, on choisit une mission
+ou le monde, et un jeton de partie est généré à la volée.
+
+```
+/start  →  choisir  →  jouer
+```
+
+Ce jeton vit dans le navigateur (`localStorage`, clé `hx_party`). Il n'est
+jamais réaffiché : si on le perd, la partie est perdue. C'est le prix d'une
+capacité au lieu d'un compte — et c'est ce qui permet de jouer sans formulaire.
+
+### L'email est un point de contrôle, jamais un péage
+
+Il est proposé aux moments où la partie vaut quelque chose : mission terminée,
+jalon franchi, cache trouvée. Il crée un **conteneur** auquel la partie se
+rattache. On peut le refuser ; la partie continue, elle reste seulement locale.
+
+**L'email n'est pas vérifié.** Aucun courrier n'est envoyé, rien n'est
+confirmé. C'est une étiquette, pas une preuve : il sert à s'y retrouver, jamais
+à réclamer une partie. Ce qui protège la partie, c'est le jeton.
+
+Conséquence assumée : deux personnes peuvent enregistrer la même adresse et
+obtenir deux conteneurs distincts. Ce n'est pas un bug, c'est la reconnaissance
+que l'adresse n'est pas une identité.
+
+### Séparation des mécaniques
+
+| Objet | Rôle | Connaît les comptes ? |
+|-------|------|----------------------|
+| `missions` / `waypoints` | contenu de jeu | non |
+| `parties` | une session jouée, avec son jeton | oui, facultativement |
+| `accounts` | conteneur de parties | — |
+
+`/play/parties` et `/play/accounts` ne touchent jamais aux tables de mission.
+C'est testé : `test_creating_a_party_never_touches_missions`.
+
+### API
+
+```
+POST   /api/play/parties                      → {party, token}   (aucun auth)
+GET    /api/play/parties/{id}                  X-Party-Token
+PATCH  /api/play/parties/{id}                  X-Party-Token  {state|merge|title}
+DELETE /api/play/parties/{id}                  X-Party-Token
+
+POST   /api/play/accounts                     → {account, token}
+GET    /api/play/accounts/{id}/parties         X-Account-Token
+POST   /api/play/accounts/{id}/parties         X-Account-Token + {party_id, party_token}
+DELETE /api/play/accounts/{id}/parties/{pid}   X-Account-Token
+```
+
+Rattacher une partie exige **les deux jetons**. Sinon posséder un compte
+suffirait à voler la partie de quelqu'un d'autre en devinant son identifiant.
+
+Détacher ne supprime pas : la partie redevient locale, avec son avancement.
+
+Les jetons sont stockés **hachés** (sha256). Personne ne les tape jamais, donc
+ça ne coûte aucune friction, mais une fuite de base ne donne pas de sessions.
+

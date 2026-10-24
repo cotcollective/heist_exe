@@ -141,3 +141,60 @@ class PlayerSession(Base):
     token_jti:        Mapped[str]            = mapped_column(String(100), unique=True)
 
     mission: Mapped["Mission"] = relationship(back_populates="sessions")
+
+
+# ── Comptes et parties ───────────────────────────────────────────────────────
+# Séparation volontaire : le compte est un CONTENEUR de parties, la partie est
+# l'unité de jeu, et les missions ignorent totalement l'existence des comptes.
+#
+# Une partie peut vivre sans compte (jeu local, aucun formulaire). Le compte
+# n'apparaît qu'au moment d'un point de contrôle, et il en contient autant
+# qu'on veut — un email n'est pas une personne, c'est une étiquette.
+#
+# Les jetons sont stockés HACHÉS. Personne ne les tape jamais, donc ça ne
+# coûte aucune friction, mais une fuite de base ne donne pas de sessions.
+
+
+class Account(Base):
+    """Conteneur de parties. Email = étiquette, jamais preuve.
+
+    L'email n'est pas vérifié : on n'envoie aucun courrier. Il ne sert donc
+    jamais à retrouver quoi que ce soit à lui seul — c'est le jeton qui
+    authentifie. Chercher par email sans jeton ne rend rien.
+    """
+    __tablename__ = "accounts"
+
+    id:         Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    email:      Mapped[str]           = mapped_column(String(200), index=True)  # PAS unique : étiquette
+    label:      Mapped[str | None]    = mapped_column(String(100))
+    token_hash: Mapped[str]           = mapped_column(String(64), unique=True, index=True)
+    created_at: Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    parties: Mapped[list["Party"]] = relationship(
+        back_populates="account",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+
+class Party(Base):
+    """Une partie : le jeton EST la partie.
+
+    kind = "mission" (ref_id -> missions.id) ou "cache" (chasse libre).
+    state_json porte l'avancement ; c'est un blob volontairement souple,
+    parce que ce qu'une mission considère comme « avancé » lui appartient —
+    pas à la table.
+    """
+    __tablename__ = "parties"
+
+    id:          Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    account_id:  Mapped[int | None]    = mapped_column(ForeignKey("accounts.id"), nullable=True, index=True)
+    kind:        Mapped[str]           = mapped_column(String(16), default="mission")
+    ref_id:      Mapped[int | None]    = mapped_column(Integer, nullable=True)
+    title:       Mapped[str | None]    = mapped_column(String(200))
+    token_hash:  Mapped[str]           = mapped_column(String(64), unique=True, index=True)
+    state_json:  Mapped[str]           = mapped_column(Text, default="{}")
+    created_at:  Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at:  Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    account: Mapped["Account | None"] = relationship(back_populates="parties")

@@ -65,6 +65,18 @@ export default function Boot() {
         <div className="text-hx-teal text-xs mt-2 tracking-widest">v0.1.0 — TÉTREAULTVILLE DISTRICT</div>
       </div>
 
+      {/* Nouvelle partie : aucun formulaire */}
+      <button
+        onClick={() => navigate('/start')}
+        data-testid="start-party"
+        className="w-full text-left border border-hx-green/50 bg-hx-green/5 p-4 mb-4 font-mono hover:border-hx-green transition-colors"
+      >
+        <div className="text-hx-green text-xs tracking-widest mb-1">NOUVELLE PARTIE</div>
+        <div className="text-hx-text text-sm font-semibold">
+          Commencer — aucun compte à créer
+        </div>
+      </button>
+
       {/* Sélection mission */}
       {missions.length > 0 && !selected && (
         <div className="flex-1">

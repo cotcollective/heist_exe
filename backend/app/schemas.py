@@ -209,3 +209,49 @@ class PublishBatchOut(BaseModel):
     published: list[PublishResult]
     created_count: int
     existing_count: int
+
+# ── Comptes et parties ──────────────────────────────────────────────────────
+# Une partie peut vivre sans compte. Le compte n'apparaît qu'au point de
+# contrôle et contient autant de parties qu'on veut : l'email est une
+# étiquette, pas une identité, et il n'est jamais vérifié.
+
+class PartyCreateIn(BaseModel):
+    kind: str = "mission"            # "mission" | "cache"
+    ref_id: Optional[int] = None     # missions.id quand kind == "mission"
+    title: Optional[str] = None
+    state: Optional[dict] = None
+
+
+class PartyCheckpointIn(BaseModel):
+    state: Optional[dict] = None     # remplace l'état
+    merge: Optional[dict] = None     # fusionne (deux onglets en parallèle)
+    title: Optional[str] = None
+
+
+class PartyOut(BaseModel):
+    id: int
+    kind: str
+    ref_id: Optional[int]
+    title: Optional[str]
+    state: dict
+    account_id: Optional[int]
+    created_at: datetime
+    updated_at: datetime
+
+
+class AccountCreateIn(BaseModel):
+    email: str
+    label: Optional[str] = None
+
+
+class AccountOut(BaseModel):
+    id: int
+    email: str
+    label: Optional[str]
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+
+class PartyAttachIn(BaseModel):
+    party_id: int
+    party_token: str

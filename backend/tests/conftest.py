@@ -48,6 +48,17 @@ async def client():
         yield c
 
 
+@pytest_asyncio.fixture
+async def db():
+    """Session directe sur la base de test, pour vérifier ce que l'API ne dit pas.
+
+    Nécessaire dès qu'un test doit prouver une absence (« le jeton n'est pas
+    stocké en clair ») ou une étanchéité (« la partie n'a pas créé de mission »).
+    """
+    async with TestSession() as session:
+        yield session
+
+
 ADMIN_KEY = "heist123"
 ADMIN_HEADERS = {"Authorization": f"Bearer {ADMIN_KEY}"}
 

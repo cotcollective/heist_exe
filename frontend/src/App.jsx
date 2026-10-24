@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useMissionStore } from './store/missionStore'
 import Boot          from './pages/Boot'
+import Start         from './pages/Start'
 import Briefing      from './pages/Briefing'
 import WaypointHunt  from './pages/WaypointHunt'
 import Enigma        from './pages/Enigma'
@@ -21,6 +22,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/"         element={<Boot />} />
+        {/* Nouvelle partie : aucun compte, un jeton, on joue. */}
+        <Route path="/start"    element={<Start />} />
         <Route path="/briefing" element={<PlayerRoute><Briefing /></PlayerRoute>} />
         <Route path="/hunt"     element={<PlayerRoute><WaypointHunt /></PlayerRoute>} />
         <Route path="/enigma/:waypointId" element={<PlayerRoute><Enigma /></PlayerRoute>} />
