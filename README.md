@@ -236,8 +236,22 @@ make seed
 
 ---
 
-## 📡 Donner accès au fils depuis son cell
+### Un seul port, une seule cible
 
+Le backend sert **aussi** le frontend bâti : API, SPA, service worker et manifeste sur un seul port. Un tunnel n'a donc qu'une cible à configurer, et il n'y a ni nginx ni second process à maintenir.
+
+```bash
+./deploy/serve.sh              # http://127.0.0.1:8000
+PORT=8090 ./deploy/serve.sh
+```
+
+Le client appelle `/api/...` ; un middleware retire le préfixe à l'entrée, ce qui évite de dupliquer tout le routeur. Les types MIME de `sw.js` et `manifest.webmanifest` sont forcés — Python ne connaît pas `.webmanifest`, et un manifeste servi en `text/plain` casse l'installation PWA.
+
+Exposition publique : voir **[deploy/TUNNEL.md](deploy/TUNNEL.md)**. En résumé, `ADMIN_KEY` reste le maillon faible sur une URL publique, donc `/admin` reste en local et le tunnel ne sert qu'aux joueurs.
+
+---
+
+## 📡 Donner accès au fils depuis son cell
 Papa fait tourner le serveur sur son ordi. Le fils joue depuis son téléphone.
 
 **Une seule commande :**

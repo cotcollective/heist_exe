@@ -25,6 +25,7 @@ Une mission était une île. Elle est maintenant un calque sur un substrat parta
 - **Téléchargement de la zone hors ligne** — depuis le briefing, bornes calculées sur les waypoints + 400 m, zooms 14-17, **plafonné à 250 tuiles** (politique d'usage OSM), écrites dans le cache `osm-tiles` servi par le service worker en `CacheFirst`. Ré-exécutable sans re-télécharger.
 - **Réclamant authentifié par clé d'appareil** — plus de `player_name` en clair dans le body. L'appareil génère une paire ECDSA P-256 (WebCrypto), enregistre la publique via `POST /world/agents`, et signe chaque réclamation sur la forme canonique `waypoint_id|player_name|ts`. Le serveur vérifie avec la clé publique, fenêtre de validité 600 s. Pas de compte, pas de mot de passe, pas de courriel.
 - **Un nom d'agent appartient à sa clé** — premier arrivé, premier servi : re-enregistrer un nom avec une autre clé renvoie 409. C'est ce qui empêche de réclamer une identité existante.
+- **Un seul port** — le backend sert aussi le frontend bâti (SPA, service worker, manifeste). Un middleware retire le préfixe `/api`, les types MIME de `.webmanifest` et `sw.js` sont forcés. `deploy/serve.sh` lance tout, refuse de démarrer sans `ADMIN_KEY`, et build le frontend s'il manque. `deploy/TUNNEL.md` documente l'exposition Cloudflare.
 - **Hôte de tuiles unique** — `{s}.tile.openstreetmap.org` remplacé par `tile.openstreetmap.org` partout. La clé de cache est l'URL exacte : avec des sous-domaines aléatoires, le prefetch ne pouvait jamais servir la carte.
 
 #### Changed
