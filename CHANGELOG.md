@@ -7,6 +7,34 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ---
 
+## [1.1.0] — 2026-10-24
+
+### 🗺️ Le Monde — caches publiques et chasse au trésor
+
+Une mission était une île. Elle est maintenant un calque sur un substrat partagé.
+
+#### Added
+- **`Waypoint.mission_id` nullable** — un waypoint peut vivre hors mission. Une cache du monde est un waypoint orphelin.
+- **`is_public`, `claim_mode`, `owner_label`** sur `Waypoint` — visibilité, régime de réclamation, attribution.
+- **Table `waypoint_claims`** avec `UNIQUE(waypoint_id, player_name)` — une seule contrainte sert les **deux régimes** : progression exclusive par joueur dans une mission, trouvaille multiple et permanente dans le monde.
+- **Router `/world`** — `GET /world/caches` (bbox, ne renvoie jamais `qr_code`, seulement `requires_proof`), `GET /world/caches/{id}`, `POST /world/caches` (plantation), `POST /world/caches/{id}/claim`.
+- **`POST /world/publish` idempotent** — clé `(origin_mission_id, origin_waypoint_id)`, colonnes `origin_*` + contrainte unique. Rejouer un lot renvoie les caches existantes avec `created=false`. Deux chemins : waypoint serveur détaché, ou cache créée depuis le payload (mission jouée hors ligne puis synchronisée).
+- **Page `/world`** — carte publique sans authentification, cercles de recherche pointillés, bandeau tactile, panneau de détail, réclamation directe ou par scan QR.
+- **Bouton « verser au monde »** dans le builder admin — une mission terminée ensemence le monde.
+
+#### Changed
+- **Inversion du rayon** — le cercle n'est plus une cible mais une **zone de recherche**. Aucun marqueur au centre. Distance affichée au **bord**, arrondie à 10 m, et **supprimée entièrement** à l'entrée dans la zone. Un compteur au mètre près transformait le téléphone en détecteur de métaux.
+- **`CachePlant`** défaut à 120 m contre 30 m pour un waypoint de mission : tolérance d'arrivée vs aire de recherche.
+- **`.hx-screen`** passe de `min-height` à `height: 100dvh` + `overflow-y: auto` — la carte Leaflet s'effondrait à 0 px dans un conteneur flex sans hauteur définie.
+
+#### Fixed
+- **`tests/conftest.py`** — `ADMIN_KEY` était définie après l'import de `app.main`, alors que `app/auth.py` la lit au niveau module. Résultat : 16 tests sur 22 échouaient en 403 et `KeyError: 'id'` en cascade. Une seule cause, seize symptômes.
+
+#### Tests
+- **38 pytest** (22 → 38) : plantation, bbox, fuite de `qr_code`, preuve QR absente/invalide/valide, idempotence par joueur, multiplicité multi-joueurs, versement idempotent, versement depuis payload, comptes mixtes, contrôle admin.
+
+---
+
 ## [1.0.0] — 2025-04-05
 
 ### 🎉 Initial Release

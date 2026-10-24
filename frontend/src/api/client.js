@@ -30,6 +30,19 @@ export const api = {
     request('POST', '/waypoints/answer', { waypoint_id: waypointId, answer }, token),
 }
 
+// ── Monde : caches publiques, hors mission ───────────────────────────────────
+export const worldApi = {
+  listCaches: (params = {}) => {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([, v]) => v !== undefined && v !== null)
+    ).toString()
+    return request('GET', `/world/caches${qs ? `?${qs}` : ''}`)
+  },
+  getCache:  (id) => request('GET', `/world/caches/${id}`),
+  claim:     (id, playerName, proof) =>
+    request('POST', `/world/caches/${id}/claim`, { player_name: playerName, proof: proof ?? null }),
+}
+
 export const adminApi = {
   listMissions:  (key) => request('GET', '/admin/missions', null, key),
   createMission: (key, payload) => request('POST', '/admin/missions', payload, key),
@@ -39,6 +52,7 @@ export const adminApi = {
     fd.append('file', file)
     return request('POST', `/upload/audio/${missionId}`, fd, key)
   },
+  publishBatch:  (key, items) => request('POST', '/world/publish', { items }, key),
 }
 
 export function createCountdownSocket(missionId, sessionId, durationSeconds, callbacks) {

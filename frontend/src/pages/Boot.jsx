@@ -171,6 +171,12 @@ export default function Boot() {
           >
             // accès coordinateur
           </button>
+          <button
+            onClick={() => navigate('/world')}
+            className="text-hx-green text-xs font-mono hover:text-hx-teal transition-colors"
+          >
+            // le monde
+          </button>
         </div>
       )}
     </div>

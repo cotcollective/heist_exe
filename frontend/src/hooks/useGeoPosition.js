@@ -33,9 +33,10 @@ export function calcBearing(lat1, lng1, lat2, lng2) {
 
 export function useGeoPosition(wp) {
     const [playerPos, setPlayerPos] = useState(null)
-    const [distance, setDistance] = useState(null)
+    const [distance, setDistance] = useState(null)      // brut, centre du waypoint
+    const [edgeDistance, setEdgeDistance] = useState(null) // distance au BORD de la zone
     const [bearing, setBearing] = useState(null)
-    const [inRange, setInRange] = useState(false)
+    const [inRange, setInRange] = useState(false)       // = DANS la zone de recherche
     const [geoError, setGeoError] = useState('')
     const [simPos, setSimPos] = useState(null) // [lat, lng] simulées
 
@@ -51,6 +52,8 @@ export function useGeoPosition(wp) {
                 const d = distanceMeters(lat, lng, wp.lat, wp.lng)
                 const b = calcBearing(lat, lng, wp.lat, wp.lng)
                 setDistance(Math.round(d))
+                // Le joueur navigue vers la ZONE, pas vers le point.
+                setEdgeDistance(Math.max(0, Math.round(d - wp.radius_meters)))
                 setBearing(Math.round(b))
                 setInRange(d <= wp.radius_meters)
             }
@@ -78,5 +81,5 @@ export function useGeoPosition(wp) {
         return () => navigator.geolocation.clearWatch(watchId)
     }, [wp, simPos])
 
-    return { playerPos, distance, bearing, inRange, geoError, inject, DEV_GPS }
+    return { playerPos, distance, edgeDistance, bearing, inRange, geoError, inject, DEV_GPS }
 }

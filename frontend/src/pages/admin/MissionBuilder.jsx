@@ -151,6 +151,38 @@ export default function MissionBuilder() {
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(!isNew)
 
+  // Versement au monde
+  const [publishing, setPublishing] = useState(false)
+  const [publishInfo, setPublishInfo] = useState(null)
+
+  async function handlePublish() {
+    if (!savedId) return
+    setPublishing(true)
+    setPublishInfo(null)
+    try {
+      const missions = await adminApi.listMissions(adminKey)
+      const m = missions.find((x) => x.id === savedId)
+      if (!m) throw new Error('Mission introuvable côté serveur')
+      const items = (m.waypoints ?? []).map((wp) => ({
+        mission_id: savedId,
+        waypoint_id: wp.id,
+        title: wp.title,
+        lat: wp.lat,
+        lng: wp.lng,
+        radius_meters: Math.max(wp.radius_meters ?? 30, 80),
+        hint: wp.hint ?? null,
+        qr_code: wp.qr_code ?? null,
+        owner_label: form.title ? form.title.slice(0, 60) : null,
+      }))
+      const res = await adminApi.publishBatch(adminKey, items)
+      setPublishInfo(res)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setPublishing(false)
+    }
+  }
+
   useEffect(() => {
     if (isNew) return
     adminApi.listMissions(adminKey).then((missions) => {
@@ -333,6 +365,36 @@ export default function MissionBuilder() {
             + AJOUTER UN WAYPOINT
           </HxButton>
         </section>
+
+        {/* Versement au monde — apparaît seulement quand la mission existe */}
+        {savedId && (
+          <section>
+            <HxDivider label="VERSER AU MONDE" />
+            <p className="text-hx-dim text-xs font-sans leading-relaxed mb-3">
+              Les waypoints de cette mission deviennent des caches publiques,
+              trouvables par n'importe qui. Rejouable sans créer de doublon.
+            </p>
+            <HxButton variant="ghost" onClick={handlePublish} loading={publishing}
+              className="w-full text-xs py-2">
+              {publishing ? 'VERSEMENT…' : '↯ VERSER LES CACHES AU MONDE'}
+            </HxButton>
+
+            {publishInfo && (
+              <div className="mt-3 text-xs font-mono text-hx-green">
+                {publishInfo.created_count} créée{publishInfo.created_count > 1 ? 's' : ''}
+                {' · '}
+                {publishInfo.existing_count} déjà versée{publishInfo.existing_count > 1 ? 's' : ''}
+                <div className="mt-1 text-hx-dim">
+                  {publishInfo.published.map((p) => (
+                    <div key={`${p.origin_mission_id}-${p.origin_waypoint_id}`}>
+                      {p.created ? '+ ' : '= '}{p.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Preview */}
         <section>

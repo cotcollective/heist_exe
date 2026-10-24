@@ -5,6 +5,7 @@ import Briefing      from './pages/Briefing'
 import WaypointHunt  from './pages/WaypointHunt'
 import Enigma        from './pages/Enigma'
 import RewardUnlock  from './pages/RewardUnlock'
+import WorldMap      from './pages/WorldMap'
 import AdminLogin     from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import MissionBuilder from './pages/admin/MissionBuilder'
@@ -24,6 +25,8 @@ export default function App() {
         <Route path="/hunt"     element={<PlayerRoute><WaypointHunt /></PlayerRoute>} />
         <Route path="/enigma/:waypointId" element={<PlayerRoute><Enigma /></PlayerRoute>} />
         <Route path="/reward"   element={<PlayerRoute><RewardUnlock /></PlayerRoute>} />
+        {/* Le monde est public : pas de mission requise pour le consulter. */}
+        <Route path="/world"    element={<WorldMap />} />
         <Route path="/admin"                    element={<AdminLogin />} />
         <Route path="/admin/dashboard"          element={<AdminDashboard />} />
         <Route path="/admin/builder/new"        element={<MissionBuilder />} />

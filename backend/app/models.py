@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Float, Boolean, Text, ForeignKey, DateTime
+from sqlalchemy import String, Integer, Float, Boolean, Text, ForeignKey, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
 from app.db import Base
@@ -31,10 +31,17 @@ class Mission(Base):
 
 class Waypoint(Base):
     __tablename__ = "waypoints"
+    __table_args__ = (
+        # Idempotence du versement au monde : une même cache d'origine
+        # ne peut être publiée qu'une fois, même si le client retente
+        # après une coupure réseau ou un rejeu depuis un avion.
+        UniqueConstraint("origin_mission_id", "origin_waypoint_id", name="uq_origin_pair"),
+    )
 
     id:             Mapped[int]         = mapped_column(Integer, primary_key=True, index=True)
-    mission_id:     Mapped[int]         = mapped_column(ForeignKey("missions.id"), index=True)
-    order:          Mapped[int]         = mapped_column(Integer)
+    # NULLABLE : un waypoint peut vivre hors mission (cache du monde).
+    mission_id:     Mapped[int | None]  = mapped_column(ForeignKey("missions.id"), index=True, nullable=True)
+    order:          Mapped[int]         = mapped_column(Integer, default=0)
     title:          Mapped[str]         = mapped_column(String(200))
     hint:           Mapped[str | None]  = mapped_column(Text)
     lat:            Mapped[float]       = mapped_column(Float)
@@ -42,7 +49,25 @@ class Waypoint(Base):
     radius_meters:  Mapped[int]         = mapped_column(Integer, default=30)
     qr_code:        Mapped[str | None]  = mapped_column(String(100))
 
-    mission: Mapped["Mission"]          = relationship(back_populates="waypoints")
+    # ── Monde ────────────────────────────────────────────────────────────────
+    # is_public  : apparaît dans le catalogue du monde (trouvable par tous)
+    # claim_mode : "progress" (avance une mission, exclusif par joueur, par mission)
+    #              "find"     (trouvaille permanente, N joueurs peuvent réclamer)
+    # owner_label: qui a planté la cache (libre, pas un compte)
+    is_public:      Mapped[bool]        = mapped_column(Boolean, default=False, index=True)
+    claim_mode:     Mapped[str]         = mapped_column(String(16), default="progress")
+    owner_label:    Mapped[str | None]  = mapped_column(String(100))
+
+    # Provenance pour l'idempotence du versement au monde.
+    origin_mission_id:  Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    origin_waypoint_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+
+    mission: Mapped["Mission | None"]   = relationship(back_populates="waypoints")
+    claims:  Mapped[list["WaypointClaim"]] = relationship(
+        back_populates="waypoint",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
     enigma:  Mapped["Enigma | None"]    = relationship(
         back_populates="waypoint",
         uselist=False,
@@ -61,6 +86,31 @@ class Enigma(Base):
     hint:         Mapped[str | None]  = mapped_column(Text)
 
     waypoint: Mapped["Waypoint"] = relationship(back_populates="enigma")
+
+
+class WaypointClaim(Base):
+    """Réclamation d'un waypoint.
+
+    Deux régimes, une seule table (cf. claim_mode sur Waypoint) :
+      - mode="progress" : avance une mission. Un joueur ne peut réclamer
+        chaque waypoint qu'une fois — l'unicité (waypoint, joueur) suffit.
+      - mode="find"     : trouvaille du monde. Plusieurs joueurs réclament
+        chacun une fois, de façon permanente et indépendante.
+    """
+    __tablename__ = "waypoint_claims"
+    __table_args__ = (
+        UniqueConstraint("waypoint_id", "player_name", name="uq_claim_waypoint_player"),
+    )
+
+    id:          Mapped[int]            = mapped_column(Integer, primary_key=True, index=True)
+    waypoint_id: Mapped[int]            = mapped_column(ForeignKey("waypoints.id"), index=True)
+    player_name: Mapped[str]            = mapped_column(String(100))
+    mode:        Mapped[str]            = mapped_column(String(16), default="find")
+    proof:       Mapped[str | None]     = mapped_column(String(100))  # ce qui a été scanné
+    proven:      Mapped[bool]           = mapped_column(Boolean, default=False)
+    claimed_at:  Mapped[datetime]       = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    waypoint: Mapped["Waypoint"] = relationship(back_populates="claims")
 
 
 class PlayerSession(Base):

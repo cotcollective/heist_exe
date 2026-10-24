@@ -1,3 +1,9 @@
+import os
+
+# L'ADMIN_KEY doit être posée AVANT l'import de app.main :
+# app/auth.py lit os.getenv("ADMIN_KEY") au niveau module.
+os.environ.setdefault("ADMIN_KEY", "heist123")
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport

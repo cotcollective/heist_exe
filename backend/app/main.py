@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from app.db import init_db
-from app.routes import missions, waypoints, enigmas, media, admin
+from app.routes import missions, waypoints, enigmas, media, admin, world
 from app.ws import router as ws_router
 
 
@@ -44,6 +44,7 @@ app.include_router(missions.router,  prefix="/missions",  tags=["missions"])
 app.include_router(waypoints.router, prefix="/waypoints", tags=["waypoints"])  # inclut /answer
 app.include_router(enigmas.router,   prefix="/enigmas",   tags=["enigmas"])
 app.include_router(media.router,     prefix="/upload",    tags=["media"])
+app.include_router(world.router,     prefix="/world",     tags=["world"])
 app.include_router(ws_router,        prefix="/ws",        tags=["websocket"])
 
 

@@ -100,6 +100,55 @@ Lance `make seed` et une mission complète est déjà injectée et prête à jou
 
 ---
 
+## 🗺️ Le Monde — caches publiques
+
+Une mission est une **séquence** ordonnée. Une cache du monde est un **lieu** : un waypoint orphelin (`mission_id = NULL`), public, réclamable indépendamment par plusieurs joueurs.
+
+Même table, même géométrie, même preuve. Seul le **régime de réclamation** change.
+
+| Régime | `claim_mode` | Portée |
+|--------|--------------|--------|
+| Progression de mission | `progress` | un joueur, une fois — avance la séquence |
+| Trouvaille du monde | `find` | N joueurs, chacun une fois — permanente |
+
+Une seule contrainte SQL (`UNIQUE(waypoint_id, player_name)`) sert les deux.
+
+### Endpoints
+
+```bash
+# Catalogue public — ne renvoie JAMAIS qr_code, seulement requires_proof
+GET  /world/caches?lat_min=45.5&lat_max=45.6&lng_min=-73.6&lng_max=-73.5
+
+# Planter une cache orpheline (admin)
+POST /world/caches
+
+# Réclamer — preuve QR exigée si la cache en porte une
+POST /world/caches/{id}/claim
+     { "player_name": "Sam", "proof": "HEIST-CACHE-001" }
+
+# Verser des caches au monde, IDEMPOTENT (admin)
+POST /world/publish
+     { "items": [ { "mission_id": 1, "waypoint_id": 4,
+                    "title": "...", "lat": 45.5681, "lng": -73.5501,
+                    "radius_meters": 120, "qr_code": "QR-001" } ] }
+```
+
+Le versement est idempotent sur `(origin_mission_id, origin_waypoint_id)` : rejouer un lot renvoie les caches existantes avec `created: false` au lieu d'en créer des doublons. C'est ce qui rend une **file de retry** possible — une mission jouée hors ligne peut être synchronisée plus tard, deux fois, ou après une coupure.
+
+**C'est aussi le mécanisme d'ensemencement** : une mission qui finit laisse ses caches derrière elle, et le monde grossit comme sous-produit des cadeaux.
+
+### La règle de la carte
+
+Le cercle est une **zone de recherche**, jamais une cible.
+
+- Aucun marqueur au centre — on donne l'aire, pas le point.
+- Distance affichée au **bord** de la zone, arrondie à 10 m.
+- À l'entrée dans la zone, la distance **disparaît** complètement et devient `ZONE / CHERCHE`.
+
+Un compteur au mètre près transforme le téléphone en détecteur de métaux : tu marches et tu regardes le chiffre descendre. Le gradient d'information doit s'effondrer exactement au moment où la recherche commence.
+
+---
+
 ## ⚡ Démarrer en 60 secondes
 
 ```bash
@@ -126,6 +175,7 @@ make seed
 | `http://localhost:8080` | � **LE FILS (l'Agent)** | Écran de mission, GPS, énigmes. Installez comme PWA sur son cell. |
 | `http://localhost:8080/admin` | 👨 **PAPA (le Coordinateur)** | Créer/gérer les missions. Accessible aussi via le lien en bas de la page d'accueil. |
 | `http://localhost:8080/api/docs` | 🔧 Développeur | Swagger auto-généré |
+| `http://localhost:8080/world` | 🌍 **Tout le monde** | Carte publique des caches. Aucune authentification. |
 
 > 🛡️ **Pour Papa** : L'écran d'accueil affiche un lien discret `// accès coordinateur` en bas — ou tape directement `/admin`. Le mot de passe = `ADMIN_KEY` dans ton `.env`.
 

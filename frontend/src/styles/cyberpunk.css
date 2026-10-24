@@ -22,7 +22,10 @@ html, body, #root {
 
 /* ── Screen container ───────────────────────────────────────────────────────── */
 .hx-screen {
-  min-height: 100dvh;
+  /* height (et non min-height) : les enfants en flex-1 ont besoin d'une
+     hauteur définie, sinon la carte Leaflet s'effondre à 0px. */
+  height: 100dvh;
+  overflow-y: auto;
   max-width: 480px;
   margin: 0 auto;
   background: #0a0a0a;

@@ -14,11 +14,7 @@ import DevGpsPanel from '../components/DevGpsPanel'
 const DEV_GPS = import.meta.env.VITE_DEV_GPS === 'true'
 
 // ── Icônes Leaflet ────────────────────────────────────────────────────────────
-const targetIcon = L.divIcon({
-  className: '',
-  html: `<div style="width:20px;height:20px;background:#00d4aa;border:2px solid #0a0a0a;border-radius:50%;box-shadow:0 0 0 3px rgba(0,212,170,0.3)"></div>`,
-  iconSize: [20, 20], iconAnchor: [10, 10],
-})
+// Pas d'icône pour la cible : le centre du waypoint n'est JAMAIS rendu.
 const playerIcon = L.divIcon({
   className: '',
   html: `<div style="width:14px;height:14px;background:#a78bfa;border:2px solid #0a0a0a;border-radius:50%"></div>`,
@@ -39,7 +35,12 @@ export default function WaypointHunt() {
 
   const wp = currentWaypoint
 
-  const { playerPos, distance, bearing, inRange, geoError, inject } = useGeoPosition(wp)
+  const { playerPos, edgeDistance, bearing, inRange, geoError, inject } = useGeoPosition(wp)
+
+  // Affichage COARSE, et uniquement la distance au BORD de la zone.
+  // Un compteur précis au mètre transforme le téléphone en détecteur de métaux :
+  // tu marches et tu regardes le chiffre descendre. On le tue.
+  const coarse = edgeDistance === null ? null : Math.round(edgeDistance / 10) * 10
 
   if (!mission || !wp) { navigate('/'); return null }
 
@@ -65,15 +66,18 @@ export default function WaypointHunt() {
           <div className="text-right">
             <div className={`text-2xl font-mono font-bold tabular-nums ${inRange
                 ? 'text-hx-green'
-                : distance !== null && distance < 100
+                : coarse !== null && coarse < 100
                   ? 'text-hx-amber'
                   : 'text-hx-teal'
               }`}>
-              {distance !== null ? `${distance}m` : '---'}
+              {inRange ? 'ZONE' : coarse !== null ? `~${coarse}m` : '---'}
             </div>
-            {inRange && (
-              <div className="text-hx-green text-xs animate-blink">EN PORTÉE ✓</div>
-            )}
+            <div className={`text-xs tracking-widest ${inRange
+                ? 'text-hx-green animate-blink'
+                : 'text-hx-dim'
+              }`}>
+              {inRange ? 'CHERCHE' : coarse !== null ? 'APPROCHE' : 'GPS…'}
+            </div>
           </div>
         </div>
         <Countdown onTimeout={() => navigate('/reward')} />
@@ -89,14 +93,22 @@ export default function WaypointHunt() {
           attributionControl={false}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {/* ZONE DE RECHERCHE — pas une cible.
+              Aucun marqueur au centre : on donne l'aire, jamais le point.
+              Le joueur doit combler l'écart avec ses yeux et ses pieds. */}
           <Circle
             center={[wp.lat, wp.lng]}
             radius={wp.radius_meters}
-            pathOptions={{ color: '#00d4aa', fillColor: '#00d4aa', fillOpacity: 0.1, weight: 1.5 }}
-          />
-          <Marker position={[wp.lat, wp.lng]} icon={targetIcon}>
-            <Popup>{wp.title}</Popup>
-          </Marker>
+            pathOptions={{
+              color: '#00d4aa',
+              fillColor: '#00d4aa',
+              fillOpacity: 0.06,
+              weight: 2,
+              dashArray: '8 8',
+            }}
+          >
+            <Popup>Zone de recherche — la cache est quelque part ici.</Popup>
+          </Circle>
           {playerPos && <Marker position={playerPos} icon={playerIcon} />}
           <FlyTo position={playerPos ?? mapCenter} />
         </MapContainer>
@@ -124,7 +136,7 @@ export default function WaypointHunt() {
               : 'bg-hx-muted text-hx-dim cursor-not-allowed'
             }`}
         >
-          {inRange ? "ACCÉDER À L'ÉNIGME ▶" : `APPROCHE-TOI (${distance ?? '?'}m restants)`}
+          {inRange ? 'CHERCHER ▶' : coarse !== null ? `APPROCHE-TOI (~${coarse}m)` : 'GPS…'}
         </button>
       </div>
 
