@@ -20,7 +20,13 @@ BASE_URL = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "http://localhost:8
 # Quand on est dans Docker : BASE_URL pointe le backend (8000)
 # Le joueur accède via Nginx (8080 par défaut)
 _nginx_host = os.getenv("APP_HOST", "http://localhost:8080")
-ADMIN_KEY = os.getenv("ADMIN_KEY", "admin-secret-key-change-me")
+_ADMIN_KEY = os.getenv("ADMIN_KEY")
+if not _ADMIN_KEY:
+    raise SystemExit(
+        "ADMIN_KEY manquante. Le serveur refuse désormais l'administration "
+        "sans clé configurée — exporte ADMIN_KEY ou renseigne .env."
+    )
+ADMIN_KEY: str = _ADMIN_KEY
 
 MISSION = {
     "title": "Opération Tétreaultville",

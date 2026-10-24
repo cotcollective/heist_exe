@@ -327,6 +327,10 @@ MEDIA_PATH=/app/media            # Fichiers audio missionsACCESS_TOKEN_EXPIRE_HO
 CORS_ORIGINS=http://localhost,http://localhost:5173
 ```
 
+> ⚠️ **Aucune valeur par défaut n'existe plus.** Sans `ADMIN_KEY`, l'administration répond `503` — elle ne s'ouvre plus avec `admin-secret-key`. Sans `SECRET_KEY`, une clé éphémère est générée au démarrage : les jetons joueur ne survivent pas à un redémarrage, mais ils ne peuvent pas être forgés.
+>
+> Les deux sont relues **à chaque requête** : changer `ADMIN_KEY` prend effet sans redémarrer le process. Génère des valeurs avec `python3 -c "import secrets; print(secrets.token_hex(32))"`.
+
 ---
 
 ## 🚀 Créer une mission via l'API

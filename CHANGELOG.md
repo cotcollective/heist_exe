@@ -33,9 +33,14 @@ Une mission était une île. Elle est maintenant un calque sur un substrat parta
 #### Fixed
 - **`tests/conftest.py`** — `ADMIN_KEY` était définie après l'import de `app.main`, alors que `app/auth.py` la lit au niveau module. Résultat : 16 tests sur 22 échouaient en 403 et `KeyError: 'id'` en cascade. Une seule cause, seize symptômes.
 - **`MissionBuilder` ne chargeait jamais une mission existante** — la route déclare `/admin/builder/:missionId`, le composant lisait `useParams().id`. Le paramètre était toujours `undefined`, donc le builder restait en mode « nouvelle mission » et le bouton de versement n'apparaissait jamais sur une mission qu'on venait de créer.
+- **`ADMIN_KEY` et `SECRET_KEY` lues à l'import, avec des valeurs par défaut publiques** — deux trous de sécurité et un défaut d'exploitation :
+  - `ADMIN_KEY` retombait sur `admin-secret-key`, une valeur écrite dans le dépôt. Déployer sans `.env` ouvrait le panneau d'administration à quiconque lit le README. Elle est maintenant lue à chaque requête, et l'administration répond **503** si elle est absente, trop courte ou égale à une valeur de démonstration connue.
+  - `SECRET_KEY` retombait sur `dev-secret-change-in-prod-minimum-32-chars`, ce qui permettait de **forger un jeton joueur** et de réclamer des caches au nom de n'importe qui. Sans `SECRET_KEY`, une clé éphémère est générée au démarrage : les jetons ne survivent pas à un redémarrage, mais ils ne sont pas forgeables.
+  - Comparaison de la clé admin en temps constant (`secrets.compare_digest`) — la comparaison naïve était sensible au timing.
+  - Bonus : la rotation d'`ADMIN_KEY` prend effet **sans redémarrer le process**.
 
 #### Tests
-- **44 pytest** (22 → 44) : plantation, bbox, fuite de `qr_code`, preuve QR absente/invalide/valide, idempotence par joueur, multiplicité multi-joueurs, versement idempotent, versement depuis payload, comptes mixtes, contrôle admin, migration d'une base 1.0.0 (données et énigmes préservées, `NOT NULL` relâché), rejeu idempotent de la migration, baseline d'une base neuve.
+- **51 pytest** (22 → 51) : plantation, bbox, fuite de `qr_code`, preuve QR absente/invalide/valide, idempotence par joueur, multiplicité multi-joueurs, versement idempotent, versement depuis payload, comptes mixtes, contrôle admin, migration d'une base 1.0.0 (données et énigmes préservées, `NOT NULL` relâché), rejeu idempotent de la migration, baseline d'une base neuve, et auth admin (503 sans clé, 503 clé faible, 503 clé courte, 403 mauvaise clé, rotation à chaud).
 
 ---
 

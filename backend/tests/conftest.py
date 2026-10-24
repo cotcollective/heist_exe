@@ -1,7 +1,8 @@
 import os
 
-# L'ADMIN_KEY doit être posée AVANT l'import de app.main :
-# app/auth.py lit os.getenv("ADMIN_KEY") au niveau module.
+# ADMIN_KEY est maintenant lue à chaque requête (app/auth.py). La poser ici
+# reste la façon la plus simple de configurer les tests, mais l'ordre
+# d'import n'a plus d'importance.
 os.environ.setdefault("ADMIN_KEY", "heist123")
 
 import pytest
