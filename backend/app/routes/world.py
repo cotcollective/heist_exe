@@ -48,6 +48,18 @@ def _to_out(wp: Waypoint, claim_count: int) -> CacheOut:
     )
 
 
+async def _find_by_origin(db: AsyncSession, mission_id, waypoint_id):
+    """Retrouve une cache déjà versée, via sa clé d'idempotence."""
+    if mission_id is None or waypoint_id is None:
+        return None
+    r = await db.execute(
+        select(Waypoint)
+        .where(Waypoint.origin_mission_id == mission_id)
+        .where(Waypoint.origin_waypoint_id == waypoint_id)
+    )
+    return r.scalar_one_or_none()
+
+
 @router.get("/caches", response_model=list[CacheOut])
 async def list_caches(
     lat_min: Optional[float] = Query(None),
@@ -111,39 +123,21 @@ async def plant_cache(payload: CachePlant, db: AsyncSession = Depends(get_db)):
     return _to_out(wp, 0)
 
 
-@router.post("/caches/{waypoint_id}/publish", response_model=PublishOut,
-             dependencies=[Depends(require_admin)])
-async def publish_waypoint(waypoint_id: int, db: AsyncSession = Depends(get_db)):
-    """Détache un waypoint de sa mission et le verse au monde.
-
-    C'est le mécanisme d'ensemencement : une mission qui finit laisse
-    derrière elle des caches que d'autres peuvent trouver.
-    """
-    wp = await db.get(Waypoint, waypoint_id)
-    if not wp:
-        raise HTTPException(status_code=404, detail="Waypoint introuvable")
-
-    # UPDATE direct : on évite le cascade delete-orphan de la relation Mission.waypoints
-    await db.execute(
-        update(Waypoint)
-        .where(Waypoint.id == waypoint_id)
-        .values(mission_id=None, is_public=True, claim_mode="find", order=0)
-    )
-    await db.commit()
-
-    return PublishOut(waypoint_id=waypoint_id, mission_id=None,
-                      is_public=True, claim_mode="find")
-
-
 @router.post("/publish", response_model=PublishBatchOut,
              dependencies=[Depends(require_admin)])
 async def publish_batch(payload: PublishBatchIn, db: AsyncSession = Depends(get_db)):
     """Verse des caches au monde, de façon IDEMPOTENTE.
 
+    Le versement COPIE, il ne déplace pas. Le waypoint d'origine reste dans
+    sa mission, intact : une mission en cours ne doit pas se retrouver
+    amputée parce qu'on a versé ses caches au monde. La copie publique et le
+    waypoint de mission sont deux objets distincts, avec deux régimes de
+    réclamation différents — c'est exactement ce qu'on veut.
+
     Deux chemins, un seul endpoint :
-      - `waypoint_id` fourni   → waypoint existant, détaché de sa mission.
-      - `waypoint_id` absent   → cache créée depuis le payload (mission
-        jouée hors ligne, synchronisée plus tard).
+      - `waypoint_id` connu du serveur → copie depuis le waypoint.
+      - `waypoint_id` inconnu ou absent → cache créée depuis le payload
+        (mission jouée hors ligne, synchronisée plus tard).
 
     La clé d'idempotence est (origin_mission_id, origin_waypoint_id).
     Rejouer le même lot renvoie les caches existantes avec created=False
@@ -153,85 +147,29 @@ async def publish_batch(payload: PublishBatchIn, db: AsyncSession = Depends(get_
     results: list[PublishResult] = []
 
     for item in payload.items:
-        has_key = item.mission_id is not None and item.waypoint_id is not None
+        existing = await _find_by_origin(db, item.mission_id, item.waypoint_id)
+        if existing:
+            results.append(PublishResult(
+                cache_id=existing.id,
+                origin_mission_id=existing.origin_mission_id,
+                origin_waypoint_id=existing.origin_waypoint_id,
+                created=False,
+                title=existing.title,
+            ))
+            continue
 
-        if has_key:
-            found = await db.execute(
-                select(Waypoint)
-                .where(Waypoint.origin_mission_id == item.mission_id)
-                .where(Waypoint.origin_waypoint_id == item.waypoint_id)
-            )
-            existing = found.scalar_one_or_none()
-            if existing:
-                results.append(PublishResult(
-                    cache_id=existing.id,
-                    origin_mission_id=existing.origin_mission_id,
-                    origin_waypoint_id=existing.origin_waypoint_id,
-                    created=False,
-                    title=existing.title,
-                ))
-                continue
+        server_wp = await db.get(Waypoint, item.waypoint_id) if item.waypoint_id else None
 
-        if item.waypoint_id is not None:
-            server_wp = await db.get(Waypoint, item.waypoint_id)
-
-            if server_wp is not None:
-                try:
-                    await db.execute(
-                        update(Waypoint)
-                        .where(Waypoint.id == item.waypoint_id)
-                        .values(
-                            mission_id=None,
-                            is_public=True,
-                            claim_mode="find",
-                            order=0,
-                            origin_mission_id=item.mission_id,
-                            origin_waypoint_id=item.waypoint_id,
-                            radius_meters=item.radius_meters,
-                            owner_label=item.owner_label or server_wp.owner_label,
-                        )
-                    )
-                    await db.commit()
-                except IntegrityError:
-                    # Course perdue : un autre appel a versé la même cache.
-                    await db.rollback()
-                    found = await db.execute(
-                        select(Waypoint)
-                        .where(Waypoint.origin_mission_id == item.mission_id)
-                        .where(Waypoint.origin_waypoint_id == item.waypoint_id)
-                    )
-                    existing = found.scalar_one_or_none()
-                    if existing is None:
-                        raise HTTPException(409, "Conflit de versement")
-                    results.append(PublishResult(
-                        cache_id=existing.id,
-                        origin_mission_id=existing.origin_mission_id,
-                        origin_waypoint_id=existing.origin_waypoint_id,
-                        created=False, title=existing.title,
-                    ))
-                    continue
-
-                results.append(PublishResult(
-                    cache_id=item.waypoint_id,
-                    origin_mission_id=item.mission_id,
-                    origin_waypoint_id=item.waypoint_id,
-                    created=True,
-                    title=server_wp.title,
-                ))
-                continue
-            # sinon : waypoint inconnu du serveur (mission hors ligne)
-            # → on tombe dans le bloc de création par payload ci-dessous.
-
-        # Création pure depuis le payload (chemin hors-ligne).
         wp = Waypoint(
             mission_id=None,
             order=0,
-            title=item.title,
-            hint=item.hint,
+            title=item.title or (server_wp.title if server_wp else ""),
+            hint=item.hint if item.hint is not None else (server_wp.hint if server_wp else None),
             lat=item.lat,
             lng=item.lng,
             radius_meters=item.radius_meters,
-            qr_code=item.qr_code,
+            qr_code=item.qr_code if item.qr_code is not None else (
+                server_wp.qr_code if server_wp else None),
             is_public=True,
             claim_mode="find",
             owner_label=item.owner_label,
@@ -242,13 +180,9 @@ async def publish_batch(payload: PublishBatchIn, db: AsyncSession = Depends(get_
         try:
             await db.commit()
         except IntegrityError:
+            # Course perdue : un autre appel a versé la même cache.
             await db.rollback()
-            found = await db.execute(
-                select(Waypoint)
-                .where(Waypoint.origin_mission_id == item.mission_id)
-                .where(Waypoint.origin_waypoint_id == item.waypoint_id)
-            )
-            existing = found.scalar_one_or_none()
+            existing = await _find_by_origin(db, item.mission_id, item.waypoint_id)
             if existing is None:
                 raise HTTPException(409, "Conflit de versement")
             results.append(PublishResult(
@@ -258,6 +192,7 @@ async def publish_batch(payload: PublishBatchIn, db: AsyncSession = Depends(get_
                 created=False, title=existing.title,
             ))
             continue
+
         await db.refresh(wp)
         results.append(PublishResult(
             cache_id=wp.id,

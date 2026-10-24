@@ -18,7 +18,8 @@ Une mission était une île. Elle est maintenant un calque sur un substrat parta
 - **`is_public`, `claim_mode`, `owner_label`** sur `Waypoint` — visibilité, régime de réclamation, attribution.
 - **Table `waypoint_claims`** avec `UNIQUE(waypoint_id, player_name)` — une seule contrainte sert les **deux régimes** : progression exclusive par joueur dans une mission, trouvaille multiple et permanente dans le monde.
 - **Router `/world`** — `GET /world/caches` (bbox, ne renvoie jamais `qr_code`, seulement `requires_proof`), `GET /world/caches/{id}`, `POST /world/caches` (plantation), `POST /world/caches/{id}/claim`.
-- **`POST /world/publish` idempotent** — clé `(origin_mission_id, origin_waypoint_id)`, colonnes `origin_*` + contrainte unique. Rejouer un lot renvoie les caches existantes avec `created=false`. Deux chemins : waypoint serveur détaché, ou cache créée depuis le payload (mission jouée hors ligne puis synchronisée).
+- **`POST /world/publish` idempotent** — clé `(origin_mission_id, origin_waypoint_id)`, colonnes `origin_*` + index unique. Rejouer un lot renvoie les caches existantes avec `created=false`. Le versement **copie** : le waypoint d'origine reste dans sa mission, intact — une mission en cours ne doit pas être amputée.
+- **Migrations SQL versionnées** — `backend/migrations/*.sql` + `schema_version`, sans dépendance. `init_db` crée le schéma manquant puis applique les fichiers en attente ; une base neuve est baselinée au lieu de rejouer. La 001 reconstruit `waypoints` (SQLite ne sait pas relâcher un `NOT NULL`).
 - **Page `/world`** — carte publique sans authentification, cercles de recherche pointillés, bandeau tactile, panneau de détail, réclamation directe ou par scan QR.
 - **Bouton « verser au monde »** dans le builder admin — une mission terminée ensemence le monde.
 

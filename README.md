@@ -133,9 +133,24 @@ POST /world/publish
                     "radius_meters": 120, "qr_code": "QR-001" } ] }
 ```
 
+Le versement **copie**, il ne déplace pas. Le waypoint d'origine reste dans sa mission, intact : une mission en cours ne doit pas se retrouver amputée parce qu'on a versé ses caches au monde. La copie publique et le waypoint de mission sont deux objets distincts, avec deux régimes de réclamation différents.
+
 Le versement est idempotent sur `(origin_mission_id, origin_waypoint_id)` : rejouer un lot renvoie les caches existantes avec `created: false` au lieu d'en créer des doublons. C'est ce qui rend une **file de retry** possible — une mission jouée hors ligne peut être synchronisée plus tard, deux fois, ou après une coupure.
 
 **C'est aussi le mécanisme d'ensemencement** : une mission qui finit laisse ses caches derrière elle, et le monde grossit comme sous-produit des cadeaux.
+
+### Migrations
+
+`backend/migrations/*.sql`, appliqués au démarrage, versionnés dans `schema_version`. Aucune dépendance, aucun Alembic.
+
+```bash
+# Ajouter une migration
+backend/migrations/002_ma_feature.sql
+```
+
+`init_db` crée d'abord les tables absentes (`create_all` ne touche jamais aux colonnes d'une table existante), puis applique les fichiers non encore vus. Une base neuve est **baselinée** : son schéma sort déjà complet de `create_all`, on marque les migrations comme appliquées sans les rejouer.
+
+La migration `001_world` reconstruit `waypoints` — SQLite ne sait pas relâcher une contrainte `NOT NULL` par `ALTER`, il faut créer / copier / déposer / renommer. Les id sont préservés, donc les énigmes restent attachées.
 
 ### La règle de la carte
 

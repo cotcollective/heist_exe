@@ -139,20 +139,37 @@ async def test_claim_unknown_cache(client):
 
 # ── Ensemencement : une mission qui finit laisse une cache ────────────────────
 
-async def test_publish_waypoint_detaches_and_opens(client):
+async def test_publish_copies_and_mission_survives(client):
+    """Le versement COPIE : la mission garde ses waypoints, le monde gagne une cache."""
     mission = (await client.post("/admin/missions", json=MISSION_PAYLOAD,
                                  headers=ADMIN_HEADERS)).json()
-    wp_id = mission["waypoints"][0]["id"]
+    wp = mission["waypoints"][0]
 
-    r = await client.post(f"/world/caches/{wp_id}/publish", headers=ADMIN_HEADERS)
+    r = await client.post("/world/publish", json={"items": [{
+        "mission_id": mission["id"],
+        "waypoint_id": wp["id"],
+        "title": wp["title"],
+        "lat": wp["lat"],
+        "lng": wp["lng"],
+        "radius_meters": 120,
+        "owner_label": "Papa",
+    }]}, headers=ADMIN_HEADERS)
     assert r.status_code == 200
-    d = r.json()
-    assert d["mission_id"] is None
-    assert d["is_public"] is True
-    assert d["claim_mode"] == "find"
+    cache_id = r.json()["published"][0]["cache_id"]
+    assert cache_id != wp["id"], "la cache doit être un objet distinct du waypoint"
 
-    listing = await client.get("/world/caches")
-    assert any(c["id"] == wp_id for c in listing.json())
+    # La mission est intacte
+    missions = (await client.get("/admin/missions", headers=ADMIN_HEADERS)).json()
+    m = next(x for x in missions if x["id"] == mission["id"])
+    assert any(w["id"] == wp["id"] for w in m["waypoints"])
+    assert all(w["is_public"] is False for w in m["waypoints"])
+
+    # Le monde a la copie
+    listing = (await client.get("/world/caches")).json()
+    assert any(c["id"] == cache_id for c in listing)
+    cache = next(c for c in listing if c["id"] == cache_id)
+    assert cache["claim_mode"] == "find"
+    assert cache["radius_meters"] == 120
 
 
 # ── Versement idempotent (batch) ─────────────────────────────────────────────

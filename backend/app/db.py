@@ -24,6 +24,22 @@ async def get_db():
 
 
 async def init_db():
+    """Crée le schéma manquant, puis applique les migrations en attente.
+
+    L'ordre compte : `create_all` ne CRÉE que les tables absentes, il ne
+    touche jamais aux colonnes d'une table existante. Une base 1.0.0 garde
+    donc son ancien `waypoints` et c'est la migration qui le reconstruit.
+    Sur une base neuve, le schéma sort déjà complet de `create_all` et on
+    baseline les migrations au lieu de les rejouer.
+    """
+    from sqlalchemy import inspect
+
     from app import models  # noqa: F401 — importer pour enregistrer les modèles
+    from app.migrations import apply_migrations
+
     async with engine.begin() as conn:
+        had_waypoints = await conn.run_sync(
+            lambda sync_conn: inspect(sync_conn).has_table("waypoints")
+        )
         await conn.run_sync(Base.metadata.create_all)
+        await apply_migrations(conn, baseline_fresh=not had_waypoints)
