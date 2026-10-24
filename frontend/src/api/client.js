@@ -39,8 +39,9 @@ export const worldApi = {
     return request('GET', `/world/caches${qs ? `?${qs}` : ''}`)
   },
   getCache:  (id) => request('GET', `/world/caches/${id}`),
-  claim:     (id, playerName, proof) =>
-    request('POST', `/world/caches/${id}/claim`, { player_name: playerName, proof: proof ?? null }),
+  claim:     (id, body) => request('POST', `/world/caches/${id}/claim`, body),
+  registerAgent: (playerName, publicJwk) =>
+    request('POST', '/world/agents', { player_name: playerName, public_jwk: publicJwk }),
 }
 
 export const adminApi = {

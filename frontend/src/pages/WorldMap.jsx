@@ -5,6 +5,7 @@ import L from 'leaflet'
 import GlitchText from '../components/GlitchText'
 import QRScanner from '../components/QRScanner'
 import { worldApi } from '../api/client'
+import { ensureAgent, signClaim } from '../lib/agent'
 import { useMissionStore } from '../store/missionStore'
 
 // Le monde = les caches orphelines, publiques. Le commun.
@@ -78,10 +79,21 @@ export default function WorldMap() {
 
   async function doClaim(withProof) {
     if (!selected) return
-    if (!name.trim()) { setResult({ kind: 'err', msg: "Donne-toi un nom d'agent." }); return }
+    const agentName = name.trim()
+    if (!agentName) { setResult({ kind: 'err', msg: "Donne-toi un nom d'agent." }); return }
     setClaiming(true)
     try {
-      const r = await worldApi.claim(selected.id, name.trim(), withProof)
+      // 1. S'assurer que l'appareil est enregistré sous ce nom.
+      const record = await ensureAgent(agentName, worldApi.registerAgent)
+      // 2. Signer la réclamation — le serveur vérifie avec la clé publique.
+      const { signature, ts } = await signClaim(selected.id, agentName, record)
+      const body = {
+        player_name: agentName,
+        signature,
+        ts,
+        proof: withProof ?? null,
+      }
+      const r = await worldApi.claim(selected.id, body)
       setResult({ kind: r.claimed ? 'ok' : 'dup', data: r })
       if (r.claimed) {
         setCaches((cs) => cs.map((c) =>

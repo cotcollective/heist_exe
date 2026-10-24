@@ -179,6 +179,31 @@ Le plafond n'est pas de la timidité : la politique d'usage des tuiles OSM inter
 
 ---
 
+### Réclamation
+
+Réclamer une cache demande une **clé d'appareil**. Pas de compte : l'app génère une paire ECDSA P-256 au premier usage, enregistre la publique, et signe chaque réclamation.
+
+```bash
+# 1. Enregistrer la clé publique (JWK) sous un nom d'agent
+POST /world/agents
+     { "player_name": "Sam", "public_jwk": { "kty":"EC","crv":"P-256","x":"…","y":"…" } }
+
+# 2. Réclamer avec une signature de « waypoint_id|player_name|ts »
+POST /world/caches/{id}/claim
+     { "player_name": "Sam", "proof": "QR-001",
+       "ts": 1792865709, "signature": "…" }   # base64url, 64 octets r‖s
+```
+
+Un nom appartient à sa clé : re-enregistrer « Sam » avec une autre clé renvoie **409**. C'est ce qui empêche de réclamer une identité existante.
+
+La signature couvre le `waypoint_id` : une signature valide pour une cache ne vaut pas pour une autre. Fenêtre de validité 600 s — assez large pour un téléphone qui retrouve le réseau après coup.
+
+WebCrypto produit une signature brute `r‖s` de 64 octets, `cryptography` attend du DER : la conversion est faite côté serveur (`app/agentkeys.py`). C'est le genre d'écart qui passe les tests unitaires et casse en production, donc il est vérifié en navigateur contre le vrai serveur.
+
+> ⚠️ `crypto.subtle` n'existe qu'en contexte sécurisé : HTTPS ou localhost. Servir l'app en `http://` sur une IP de LAN fait échouer la signature — le message d'erreur le dit explicitement.
+
+---
+
 ## ⚡ Démarrer en 60 secondes
 
 ```bash

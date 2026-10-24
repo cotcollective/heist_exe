@@ -141,6 +141,20 @@ class CacheOut(BaseModel):
 class ClaimIn(BaseModel):
     player_name: str
     proof: Optional[str] = None
+    # Signature ECDSA P-256 de « waypoint_id|player_name|ts », base64url.
+    signature: Optional[str] = None
+    ts: Optional[int] = None
+
+
+class AgentRegisterIn(BaseModel):
+    player_name: str
+    public_jwk: dict
+
+
+class AgentOut(BaseModel):
+    player_name: str
+    created_at: Optional[datetime] = None
+    model_config = {"from_attributes": True}
 
 
 class ClaimOut(BaseModel):

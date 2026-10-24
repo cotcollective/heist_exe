@@ -88,6 +88,22 @@ class Enigma(Base):
     waypoint: Mapped["Waypoint"] = relationship(back_populates="enigma")
 
 
+class Agent(Base):
+    """Identité d'appareil : un nom + une clé publique ECDSA.
+
+    Pas de compte, pas de mot de passe. L'appareil génère une paire de clés
+    et enregistre la publique. Ensuite chaque réclamation est signée, donc
+    personne ne peut réclamer au nom d'un autre.
+    """
+    __tablename__ = "agents"
+
+    id:          Mapped[int]      = mapped_column(Integer, primary_key=True, index=True)
+    player_name: Mapped[str]      = mapped_column(String(100), unique=True, index=True)
+    public_x:    Mapped[str]      = mapped_column(String(120))
+    public_y:    Mapped[str]      = mapped_column(String(120))
+    created_at:  Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 class WaypointClaim(Base):
     """Réclamation d'un waypoint.
 

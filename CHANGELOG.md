@@ -23,6 +23,8 @@ Une mission était une île. Elle est maintenant un calque sur un substrat parta
 - **Page `/world`** — carte publique sans authentification, cercles de recherche pointillés, bandeau tactile, panneau de détail, réclamation directe ou par scan QR.
 - **Bouton « verser au monde »** dans le builder admin — une mission terminée ensemence le monde.
 - **Téléchargement de la zone hors ligne** — depuis le briefing, bornes calculées sur les waypoints + 400 m, zooms 14-17, **plafonné à 250 tuiles** (politique d'usage OSM), écrites dans le cache `osm-tiles` servi par le service worker en `CacheFirst`. Ré-exécutable sans re-télécharger.
+- **Réclamant authentifié par clé d'appareil** — plus de `player_name` en clair dans le body. L'appareil génère une paire ECDSA P-256 (WebCrypto), enregistre la publique via `POST /world/agents`, et signe chaque réclamation sur la forme canonique `waypoint_id|player_name|ts`. Le serveur vérifie avec la clé publique, fenêtre de validité 600 s. Pas de compte, pas de mot de passe, pas de courriel.
+- **Un nom d'agent appartient à sa clé** — premier arrivé, premier servi : re-enregistrer un nom avec une autre clé renvoie 409. C'est ce qui empêche de réclamer une identité existante.
 - **Hôte de tuiles unique** — `{s}.tile.openstreetmap.org` remplacé par `tile.openstreetmap.org` partout. La clé de cache est l'URL exacte : avec des sous-domaines aléatoires, le prefetch ne pouvait jamais servir la carte.
 
 #### Changed
@@ -40,7 +42,7 @@ Une mission était une île. Elle est maintenant un calque sur un substrat parta
   - Bonus : la rotation d'`ADMIN_KEY` prend effet **sans redémarrer le process**.
 
 #### Tests
-- **51 pytest** (22 → 51) : plantation, bbox, fuite de `qr_code`, preuve QR absente/invalide/valide, idempotence par joueur, multiplicité multi-joueurs, versement idempotent, versement depuis payload, comptes mixtes, contrôle admin, migration d'une base 1.0.0 (données et énigmes préservées, `NOT NULL` relâché), rejeu idempotent de la migration, baseline d'une base neuve, et auth admin (503 sans clé, 503 clé faible, 503 clé courte, 403 mauvaise clé, rotation à chaud).
+- **59 pytest** (22 → 59) : plantation, bbox, fuite de `qr_code`, preuve QR absente/invalide/valide, idempotence par joueur, multiplicité multi-joueurs, versement idempotent, versement depuis payload, comptes mixtes, contrôle admin, migration d'une base 1.0.0 (données et énigmes préservées, `NOT NULL` relâché), rejeu idempotent de la migration, baseline d'une base neuve, auth admin (503 sans clé, 503 clé faible, 503 clé courte, 403 mauvaise clé, rotation à chaud), et réclamation signée (sans agent 403, sans signature 401, signature forgée 403, signature liée au waypoint, signature expirée 401, nom volé 409, ré-enregistrement idempotent, clé invalide 400).
 
 ---
 

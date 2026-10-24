@@ -14,12 +14,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from app.db import get_db
-from app.models import Waypoint, WaypointClaim
+from app.models import Waypoint, WaypointClaim, Agent
 from app.schemas import (
     CachePlant, CacheOut, ClaimIn, ClaimOut, PublishOut,
     PublishBatchIn, PublishBatchOut, PublishResult,
+    AgentRegisterIn, AgentOut,
 )
 from app.auth import require_admin
+from app.agentkeys import (
+    verify_claim_signature, valid_public_jwk, jwk_fingerprint,
+    SIGNATURE_WINDOW_SECONDS,
+)
+import time
 
 router = APIRouter()
 
@@ -210,18 +216,93 @@ async def publish_batch(payload: PublishBatchIn, db: AsyncSession = Depends(get_
     )
 
 
+@router.post("/agents", response_model=AgentOut)
+async def register_agent(payload: AgentRegisterIn, db: AsyncSession = Depends(get_db)):
+    """Enregistre la clé publique d'un appareil sous un nom d'agent.
+
+    Premier arrivé, premier servi : un nom déjà pris avec une autre clé
+    renvoie 409. C'est ce qui empêche quelqu'un de réclamer une identité
+    existante — et c'est suffisant pour un jeu de quartier, où le nom n'a
+    pas de valeur monétaire.
+    """
+    name = payload.player_name.strip()
+    if not name:
+        raise HTTPException(400, "Nom d'agent requis")
+    if not valid_public_jwk(payload.public_jwk):
+        raise HTTPException(400, "Clé publique invalide (ECDSA P-256 attendue)")
+
+    existing = await db.execute(select(Agent).where(Agent.player_name == name))
+    agent = existing.scalar_one_or_none()
+
+    if agent:
+        same = jwk_fingerprint({
+            "x": agent.public_x, "y": agent.public_y,
+        }) == jwk_fingerprint(payload.public_jwk)
+        if not same:
+            raise HTTPException(409, "Ce nom d'agent est déjà associé à une autre clé")
+        return AgentOut(player_name=agent.player_name, created_at=agent.created_at)
+
+    agent = Agent(
+        player_name=name,
+        public_x=payload.public_jwk["x"],
+        public_y=payload.public_jwk["y"],
+    )
+    db.add(agent)
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(409, "Ce nom d'agent vient d'être pris")
+    await db.refresh(agent)
+    return AgentOut(player_name=agent.player_name, created_at=agent.created_at)
+
+
+@router.get("/agents/{player_name}", response_model=AgentOut)
+async def get_agent(player_name: str, db: AsyncSession = Depends(get_db)):
+    r = await db.execute(select(Agent).where(Agent.player_name == player_name.strip()))
+    agent = r.scalar_one_or_none()
+    if not agent:
+        raise HTTPException(404, "Agent inconnu")
+    return AgentOut(player_name=agent.player_name, created_at=agent.created_at)
+
+
 @router.post("/caches/{waypoint_id}/claim", response_model=ClaimOut)
 async def claim_cache(waypoint_id: int, payload: ClaimIn,
                       db: AsyncSession = Depends(get_db)):
-    """Réclame une cache. Le régime est porté par la cache, pas par l'appelant."""
+    """Réclame une cache. Le régime est porté par la cache, pas par l'appelant.
+
+    La réclamation est signée par la clé d'appareil de l'agent : sans elle,
+    n'importe qui pourrait réclamer au nom de n'importe qui dès que le
+    service est exposé publiquement.
+    """
     wp = await db.get(Waypoint, waypoint_id)
     if not wp or not wp.is_public:
         raise HTTPException(status_code=404, detail="Cache introuvable")
 
+    name = payload.player_name.strip()
+    r = await db.execute(select(Agent).where(Agent.player_name == name))
+    agent = r.scalar_one_or_none()
+    if agent is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Agent non enregistré — enregistre ta clé d'appareil d'abord",
+        )
+
+    if not payload.signature or payload.ts is None:
+        raise HTTPException(status_code=401, detail="Signature de réclamation manquante")
+    if abs(time.time() - payload.ts) > SIGNATURE_WINDOW_SECONDS:
+        raise HTTPException(status_code=401, detail="Signature expirée")
+
+    if not verify_claim_signature(
+        {"kty": "EC", "crv": "P-256", "x": agent.public_x, "y": agent.public_y},
+        waypoint_id, name, payload.ts, payload.signature,
+    ):
+        raise HTTPException(status_code=403, detail="Signature invalide")
+
     existing = await db.execute(
         select(WaypointClaim)
         .where(WaypointClaim.waypoint_id == waypoint_id)
-        .where(WaypointClaim.player_name == payload.player_name)
+        .where(WaypointClaim.player_name == name)
     )
     if existing.scalar_one_or_none():
         return ClaimOut(
@@ -243,7 +324,7 @@ async def claim_cache(waypoint_id: int, payload: ClaimIn,
 
     db.add(WaypointClaim(
         waypoint_id=waypoint_id,
-        player_name=payload.player_name,
+        player_name=name,
         mode=wp.claim_mode,
         proof=payload.proof,
         proven=proven,
