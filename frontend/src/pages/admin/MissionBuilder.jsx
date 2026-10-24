@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { adminApi } from '../../api/client'
+import { enqueue, flush, outboxSize } from '../../lib/outbox'
 import { HxInput, HxButton, HxCard, HxDivider, HxBadge } from '../../components/HxAtoms'
 import WaypointEditor from '../../components/WaypointEditor'
 import GlitchText from '../../components/GlitchText'
@@ -154,6 +155,21 @@ export default function MissionBuilder() {
   // Versement au monde
   const [publishing, setPublishing] = useState(false)
   const [publishInfo, setPublishInfo] = useState(null)
+  const [queued, setQueued] = useState(() => outboxSize())
+
+  // Au chargement : vider ce qui aurait été mis en file lors d'une coupure.
+  useEffect(() => {
+    if (!adminKey) return
+    flush((items) => adminApi.publishBatch(adminKey, items))
+      .then((r) => {
+        setQueued(r.remaining)
+        if (r.sent > 0) {
+          setPublishInfo({ created_count: 0, existing_count: 0, published: [],
+                           flushed: r.sent, dropped: r.dropped })
+        }
+      })
+      .catch(() => {})
+  }, [adminKey])
 
   async function handlePublish() {
     if (!savedId) return
@@ -177,6 +193,29 @@ export default function MissionBuilder() {
       const res = await adminApi.publishBatch(adminKey, items)
       setPublishInfo(res)
     } catch (e) {
+      // Le serveur est injoignable : on met en file plutôt que de perdre le
+      // travail. L'endpoint est idempotent, donc rejouer est sans danger.
+      const transient = /réseau|network|fetch|timeout|Failed to fetch|Load failed/i.test(e.message)
+      if (transient) {
+        try {
+          const missions = await adminApi.listMissions(adminKey)
+          const m = missions.find((x) => x.id === savedId)
+          if (m) {
+            enqueue((m.waypoints ?? []).map((wp) => ({
+              mission_id: savedId,
+              waypoint_id: wp.id,
+              title: wp.title,
+              lat: wp.lat,
+              lng: wp.lng,
+              radius_meters: Math.max(wp.radius_meters ?? 30, 80),
+              hint: wp.hint ?? null,
+              qr_code: wp.qr_code ?? null,
+              owner_label: form.title ? form.title.slice(0, 60) : null,
+            })))
+            setQueued(outboxSize())
+          }
+        } catch { /* les deux sont injoignables : rien à mettre en file */ }
+      }
       setError(e.message)
     } finally {
       setPublishing(false)
@@ -381,9 +420,16 @@ export default function MissionBuilder() {
 
             {publishInfo && (
               <div className="mt-3 text-xs font-mono text-hx-green">
-                {publishInfo.created_count} créée{publishInfo.created_count > 1 ? 's' : ''}
-                {' · '}
-                {publishInfo.existing_count} déjà versée{publishInfo.existing_count > 1 ? 's' : ''}
+                {publishInfo.flushed
+                  ? <>{publishInfo.flushed} lot{publishInfo.flushed > 1 ? 's' : ''} en file renvoyé{publishInfo.flushed > 1 ? 's' : ''}
+                      {publishInfo.dropped > 0 && <span className="text-hx-amber"> · {publishInfo.dropped} abandonné{publishInfo.dropped > 1 ? 's' : ''}</span>}
+                    </>
+                  : <>
+                      {publishInfo.created_count} créée{publishInfo.created_count > 1 ? 's' : ''}
+                      {' · '}
+                      {publishInfo.existing_count} déjà versée{publishInfo.existing_count > 1 ? 's' : ''}
+                    </>
+                }
                 <div className="mt-1 text-hx-dim">
                   {publishInfo.published.map((p) => (
                     <div key={`${p.origin_mission_id}-${p.origin_waypoint_id}`}>
@@ -391,6 +437,12 @@ export default function MissionBuilder() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {queued > 0 && (
+              <div className="mt-2 text-xs font-mono text-hx-amber">
+                {queued} lot{queued > 1 ? 's' : ''} en attente de réseau — renvoyé au prochain chargement
               </div>
             )}
           </section>
