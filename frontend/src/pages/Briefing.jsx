@@ -3,6 +3,7 @@ import { useMissionStore } from '../store/missionStore'
 import AudioPlayer from '../components/AudioPlayer'
 import GlitchText from '../components/GlitchText'
 import Countdown from '../components/Countdown'
+import OfflineZone from '../components/OfflineZone'
 
 export default function Briefing() {
   const navigate     = useNavigate()
@@ -50,6 +51,9 @@ export default function Briefing() {
           <p className="text-hx-text text-sm leading-relaxed font-sans">{mission.lore}</p>
         </div>
       )}
+
+      {/* Hors ligne — à faire avant de sortir */}
+      <OfflineZone points={mission.waypoints ?? []} />
 
       {/* Actions */}
       <div className="mt-auto flex gap-3">

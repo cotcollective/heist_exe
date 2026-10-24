@@ -134,7 +134,7 @@ export default function WorldMap() {
           zoomControl={false}
           attributionControl={false}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <FitBounds caches={caches} />
 
           {caches.map((c) => (

@@ -109,7 +109,7 @@ export default function WaypointEditor({ waypoint, index, onUpdate, onRemove, on
                 zoomControl={false}
                 attributionControl={false}
               >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <MapPicker
                   lat={waypoint.lat}
                   lng={waypoint.lng}

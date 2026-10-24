@@ -49,7 +49,10 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: {
               cacheName: 'osm-tiles',
-              expiration: { maxEntries: 500, maxAgeSeconds: 604800 },
+              // Assez large pour contenir une zone téléchargée (plafonnée à
+              // 250 tuiles côté client) sans éviction, plus les tuiles vues
+              // au fil de la navigation.
+              expiration: { maxEntries: 2000, maxAgeSeconds: 2592000 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

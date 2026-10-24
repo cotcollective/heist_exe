@@ -92,7 +92,7 @@ export default function WaypointHunt() {
           zoomControl={false}
           attributionControl={false}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {/* ZONE DE RECHERCHE — pas une cible.
               Aucun marqueur au centre : on donne l'aire, jamais le point.
               Le joueur doit combler l'écart avec ses yeux et ses pieds. */}

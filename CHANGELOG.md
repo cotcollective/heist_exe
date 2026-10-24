@@ -22,6 +22,8 @@ Une mission était une île. Elle est maintenant un calque sur un substrat parta
 - **Migrations SQL versionnées** — `backend/migrations/*.sql` + `schema_version`, sans dépendance. `init_db` crée le schéma manquant puis applique les fichiers en attente ; une base neuve est baselinée au lieu de rejouer. La 001 reconstruit `waypoints` (SQLite ne sait pas relâcher un `NOT NULL`).
 - **Page `/world`** — carte publique sans authentification, cercles de recherche pointillés, bandeau tactile, panneau de détail, réclamation directe ou par scan QR.
 - **Bouton « verser au monde »** dans le builder admin — une mission terminée ensemence le monde.
+- **Téléchargement de la zone hors ligne** — depuis le briefing, bornes calculées sur les waypoints + 400 m, zooms 14-17, **plafonné à 250 tuiles** (politique d'usage OSM), écrites dans le cache `osm-tiles` servi par le service worker en `CacheFirst`. Ré-exécutable sans re-télécharger.
+- **Hôte de tuiles unique** — `{s}.tile.openstreetmap.org` remplacé par `tile.openstreetmap.org` partout. La clé de cache est l'URL exacte : avec des sous-domaines aléatoires, le prefetch ne pouvait jamais servir la carte.
 
 #### Changed
 - **Inversion du rayon** — le cercle n'est plus une cible mais une **zone de recherche**. Aucun marqueur au centre. Distance affichée au **bord**, arrondie à 10 m, et **supprimée entièrement** à l'entrée dans la zone. Un compteur au mètre près transformait le téléphone en détecteur de métaux.

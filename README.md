@@ -164,6 +164,21 @@ Un compteur au mètre près transforme le téléphone en détecteur de métaux :
 
 ---
 
+### Hors ligne
+
+Le briefing propose de télécharger la carte de la zone avant de partir.
+
+- Bornes calculées depuis les waypoints de la mission, + 400 m de marge.
+- Zooms 14 → 17, **plafonné à 250 tuiles** par téléchargement.
+- Les tuiles vont dans le cache `osm-tiles` — celui-là même que sert le service worker en `CacheFirst`. Relancer un téléchargement saute ce qui est déjà là.
+- Les tuiles déjà là ne sont jamais re-téléchargées : le bouton est ré-exécutable sans coût.
+
+Le plafond n'est pas de la timidité : la politique d'usage des tuiles OSM interdit les téléchargements massifs. Une zone de mission typique (quatre waypoints, ~1,5 km de côté) fait 60 à 120 tuiles, soit 1 à 2 Mo — largement sous le budget. Pour couvrir une ville entière il faudra une source tuilée dédiée (PMTiles auto-hébergé), pas les tuiles publiques.
+
+**Important** : la couche Leaflet utilise un hôte unique `tile.openstreetmap.org`, sans sous-domaine `{s}`. La clé de cache est l'URL exacte ; si la carte demande `a.tile...` et le prefetch télécharge `tile...`, le cache ne sert à rien.
+
+---
+
 ## ⚡ Démarrer en 60 secondes
 
 ```bash
