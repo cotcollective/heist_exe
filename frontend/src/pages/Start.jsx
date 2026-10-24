@@ -88,7 +88,7 @@ export default function Start() {
         </div>
       )}
 
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 flex flex-col justify-center space-y-5 py-2">
         <div>
           <div className="text-hx-sub text-xs tracking-widest mb-2">// UNE MISSION</div>
           <div className="space-y-2">
@@ -137,7 +137,7 @@ export default function Start() {
         </div>
       </div>
 
-      <div className="pt-4 text-center">
+      <div className="pt-6 text-center">
         <button onClick={() => navigate('/')}
                 className="text-hx-dim text-xs font-mono hover:text-hx-sub">
           ← retour

@@ -61,10 +61,15 @@ export default function OfflineZone({ points }) {
         {stats?.supported && <span>{stats.tiles} en cache</span>}
       </div>
 
+      <p className="text-[11px] text-hx-sub leading-relaxed mb-3">
+        Plafonné à {TILE_BUDGET} tuiles : la politique d'usage des tuiles OSM
+        interdit les téléchargements massifs.
+      </p>
+
       <button
         onClick={download}
         disabled={running || tiles.length === 0}
-        className="w-full py-2 rounded font-mono text-xs font-bold bg-hx-teal text-hx-bg disabled:opacity-40"
+        className="w-full py-3 rounded font-mono text-xs font-bold bg-hx-teal text-hx-bg disabled:opacity-40"
       >
         {running ? `TÉLÉCHARGEMENT ${pct}%` : '⤓ TÉLÉCHARGER LA ZONE'}
       </button>
@@ -83,12 +88,6 @@ export default function OfflineZone({ points }) {
       )}
 
       {error && <div className="mt-2 text-xs font-mono text-hx-amber">// {error}</div>}
-
-      <p className="mt-3 text-[10px] text-hx-dim opacity-70 leading-relaxed">
-        Plafonné à {TILE_BUDGET} tuiles : la politique d'usage des tuiles OSM
-        interdit les téléchargements massifs. Pour une zone plus large, il
-        faudra une source tuilée dédiée.
-      </p>
     </section>
   )
 }

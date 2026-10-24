@@ -31,6 +31,24 @@ export function calcBearing(lat1, lng1, lat2, lng2) {
     return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360
 }
 
+/**
+ * Traduit une erreur GPS en une phrase qui dit quoi faire.
+ *
+ * Le code 1 (PERMISSION_DENIED) est le seul que l'utilisateur peut corriger
+ * lui-même, et c'est le seul qu'on ne voyait pas : toutes les erreurs
+ * tombaient dans le même message, sans issue. Sur un téléphone, un refus
+ * accidentel de la bulle de permission laissait l'écran mort.
+ */
+function humanGeoError(err) {
+    if (!err) return 'GPS indisponible'
+    switch (err.code) {
+        case 1: return 'GPS bloqué — autorise la position dans les réglages du navigateur, puis réessaie'
+        case 2: return 'Position introuvable — sors à découvert et réessaie'
+        case 3: return 'Le GPS met trop de temps — réessaie'
+        default: return 'GPS indisponible'
+    }
+}
+
 export function useGeoPosition(wp) {
     const [playerPos, setPlayerPos] = useState(null)
     const [distance, setDistance] = useState(null)      // brut, centre du waypoint
@@ -39,6 +57,7 @@ export function useGeoPosition(wp) {
     const [inRange, setInRange] = useState(false)       // = DANS la zone de recherche
     const [geoError, setGeoError] = useState('')
     const [simPos, setSimPos] = useState(null) // [lat, lng] simulées
+    const [retryTick, setRetryTick] = useState(0)  // relance le watch
 
     // Injection externe (DevGpsPanel)
     const inject = useCallback((lat, lng) => {
@@ -73,13 +92,19 @@ export function useGeoPosition(wp) {
         const watchId = navigator.geolocation.watchPosition(
             (pos) => {
                 const { latitude: lat, longitude: lng } = pos.coords
+                setGeoError('')
                 update(lat, lng)
             },
-            () => setGeoError('Autorise le GPS pour la mission'),
-            { enableHighAccuracy: true, maximumAge: 5000 }
+            (err) => setGeoError(humanGeoError(err)),
+            { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
         )
         return () => navigator.geolocation.clearWatch(watchId)
-    }, [wp, simPos])
+    }, [wp, simPos, retryTick])
 
-    return { playerPos, distance, edgeDistance, bearing, inRange, geoError, inject, DEV_GPS }
+    const retry = useCallback(() => {
+        setGeoError('')
+        setRetryTick((t) => t + 1)
+    }, [])
+
+    return { playerPos, distance, edgeDistance, bearing, inRange, geoError, inject, retry, DEV_GPS }
 }

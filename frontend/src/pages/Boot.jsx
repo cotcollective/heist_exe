@@ -176,18 +176,19 @@ export default function Boot() {
 
       {/* Footer discret — Papa peut toujours accéder à l'admin */}
       {!selected && (
-        <div className="pt-4 pb-2 text-center">
-          <button
-            onClick={() => navigate('/admin')}
-            className="text-hx-dim text-xs font-mono hover:text-hx-sub transition-colors"
-          >
-            // accès coordinateur
-          </button>
+        <div className="pt-6 pb-2 flex items-center justify-center gap-4 text-xs font-mono">
           <button
             onClick={() => navigate('/world')}
-            className="text-hx-green text-xs font-mono hover:text-hx-teal transition-colors"
+            className="text-hx-green hover:text-hx-teal transition-colors px-2 py-2"
           >
-            // le monde
+            le monde
+          </button>
+          <span className="text-hx-border">·</span>
+          <button
+            onClick={() => navigate('/admin')}
+            className="text-hx-sub hover:text-hx-text transition-colors px-2 py-2"
+          >
+            coordinateur
           </button>
         </div>
       )}

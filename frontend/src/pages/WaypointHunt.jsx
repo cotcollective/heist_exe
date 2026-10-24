@@ -35,7 +35,7 @@ export default function WaypointHunt() {
 
   const wp = currentWaypoint
 
-  const { playerPos, edgeDistance, bearing, inRange, geoError, inject } = useGeoPosition(wp)
+  const { playerPos, edgeDistance, bearing, inRange, geoError, inject, retry } = useGeoPosition(wp)
 
   // Affichage COARSE, et uniquement la distance au BORD de la zone.
   // Un compteur précis au mètre transforme le téléphone en détecteur de métaux :
@@ -70,13 +70,13 @@ export default function WaypointHunt() {
                   ? 'text-hx-amber'
                   : 'text-hx-teal'
               }`}>
-              {inRange ? 'ZONE' : coarse !== null ? `~${coarse}m` : '---'}
+              {inRange ? 'ZONE' : coarse !== null ? `~${coarse}m` : '—'}
             </div>
             <div className={`text-xs tracking-widest ${inRange
                 ? 'text-hx-green animate-blink'
                 : 'text-hx-dim'
               }`}>
-              {inRange ? 'CHERCHE' : coarse !== null ? 'APPROCHE' : 'GPS…'}
+              {inRange ? 'CHERCHE' : coarse !== null ? 'APPROCHE' : geoError ? 'BLOQUÉ' : 'LOCALISE…'}
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function WaypointHunt() {
       </div>
 
       {/* ── Map + NavArrow overlay ── */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative min-h-[44vh]">
         <MapContainer
           center={mapCenter}
           zoom={17}
@@ -120,7 +120,15 @@ export default function WaypointHunt() {
       {/* ── Footer ── */}
       <div className="px-4 py-4 border-t border-hx-border bg-hx-bg">
         {geoError && (
-          <div className="text-hx-amber text-xs font-mono mb-3">// {geoError}</div>
+          <div className="border border-hx-amber/40 bg-hx-amber/5 px-3 py-2 mb-2 font-mono">
+            <div className="text-hx-amber text-[11px] leading-snug">{geoError}</div>
+            <button
+              onClick={retry}
+              className="mt-1.5 border border-hx-amber text-hx-amber px-2.5 py-0.5 text-[11px]"
+            >
+              RÉESSAYER
+            </button>
+          </div>
         )}
         {wp.hint && (
           <div className="text-hx-sub text-xs font-mono mb-3 border-l-2 border-hx-border pl-3">
@@ -136,7 +144,13 @@ export default function WaypointHunt() {
               : 'bg-hx-muted text-hx-dim cursor-not-allowed'
             }`}
         >
-          {inRange ? 'CHERCHER ▶' : coarse !== null ? `APPROCHE-TOI (~${coarse}m)` : 'GPS…'}
+          {inRange
+            ? 'CHERCHER ▶'
+            : coarse !== null
+              ? `APPROCHE-TOI (~${coarse}m)`
+              : geoError
+                ? 'GPS BLOQUÉ'
+                : 'LOCALISATION…'}
         </button>
       </div>
 

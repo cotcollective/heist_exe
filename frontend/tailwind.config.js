@@ -9,7 +9,7 @@ export default {
           surface:  '#111111',
           border:   '#1f1f1f',
           muted:    '#2a2a2a',
-          dim:      '#555555',
+          dim:      '#7a7a7a',   // 4.61:1 sur hx-bg — lisible dehors
           text:     '#e8e8e8',
           sub:      '#888888',
           teal:     '#00d4aa',
