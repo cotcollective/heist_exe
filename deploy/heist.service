@@ -1,0 +1,16 @@
+[Unit]
+Description=HEIST.EXE — API + frontend (un seul port)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=portefolio
+WorkingDirectory=/mnt/WIN1TB/heist_probe
+ExecStart=/mnt/WIN1TB/heist_probe/deploy/serve.sh
+Restart=on-failure
+RestartSec=5s
+# Le script refuse de démarrer sans ADMIN_KEY — inutile d'essayer plus vite.
+
+[Install]
+WantedBy=multi-user.target

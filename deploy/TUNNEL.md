@@ -13,35 +13,48 @@ Le script refuse de démarrer sans `ADMIN_KEY` — l'administration répondrait
 
 ---
 
-## Cloudflare Tunnel
+## Ce qui est déjà en place sur cette machine
 
-Le tunnel `gdc` de cette machine est **géré par token** : ses routes vivent
-dans le dashboard, pas dans `~/.cloudflared/config.yml`. Éditer le fichier
-local n'a aucun effet, et le tunnel sert déjà `legarsdeschandails.store` sur
-le port 3400 — il ne faut pas le casser.
+Un tunnel **dédié** au jeu, distinct de `gdc` qui sert `legarsdeschandails.store`
+sur le port 3400 :
 
-### Ajouter la route (dashboard, 1 minute)
+| | |
+|---|---|
+| Tunnel | `heist` — `dce36269-d6f7-4a12-a0d3-958a2331a578` |
+| Config | `~/.cloudflared/heist.yml` (ingress local, pas de token) |
+| Hôte | `https://chasse.legarsdeschandails.store` |
+| Cible | `http://127.0.0.1:8000` |
 
-1. **Cloudflare Zero Trust** → *Networks* → *Tunnels* → tunnel `gdc`
-2. Onglet **Public Hostname** → *Add a public hostname*
-3. Renseigner :
-   - **Subdomain** : `heist`
-   - **Domain** : la zone de ton choix (celle du tunnel, ex. `legarsdeschandails.store`)
-   - **Service Type** : `HTTP`
-   - **URL** : `127.0.0.1:8000`
-4. *Save*. Le DNS et le certificat TLS sont créés automatiquement.
+Le CNAME a été créé avec `cloudflared tunnel route dns`, qui s'authentifie
+avec le `cert.pem` de `cloudflared tunnel login` — **pas besoin de token API**.
+C'est ce qu'il faut utiliser : un token « Edit zone DNS » ne peut pas créer de
+tunnel ni poser d'ingress.
 
-L'app est alors sur `https://heist.<ta-zone>` — HTTPS réel, donc `crypto.subtle`
-fonctionne et la signature des réclamations aussi.
+> ⚠️ `cloudflared tunnel route dns heist …` résout parfois le nom vers un
+> **autre** tunnel et le dit dans sa sortie (`tunnelID=…`). Toujours lire cette
+> ligne. Passer l'UUID explicite évite l'ambiguïté.
 
-### Vérifier
+### Poser les services (survit à la session)
 
 ```bash
-curl -sS -o /dev/null -w "%{http_code}\n" https://heist.<ta-zone>/health
-curl -sS https://heist.<ta-zone>/api/health
+sudo cp deploy/heist.service deploy/heist-tunnel.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now heist heist-tunnel
+systemctl status heist heist-tunnel --no-pager
 ```
 
-Les deux doivent répondre 200.
+---
+
+## Ajouter une autre route
+
+```bash
+cloudflared tunnel route dns dce36269-d6f7-4a12-a0d3-958a2331a578 <hôte>
+```
+puis ajouter le `hostname` correspondant dans `~/.cloudflared/heist.yml` et
+redémarrer `heist-tunnel`.
+
+Un CNAME ne peut pas être réécrit : s'il existe déjà pour cet hôte, il faut le
+supprimer d'abord (dashboard → DNS), sinon `route dns` renvoie `code: 1003`.
 
 ---
 
@@ -72,11 +85,12 @@ Option 1 par défaut. Rien à configurer.
 
 ## Si le tunnel casse
 
-Le service tourne via `systemctl status cloudflared`. Son `ExecStart` contient
-un `--token` : c'est ce token qui porte la configuration, pas le fichier local.
-Un tunnel tokenisé ignore `config.yml`.
+Le service `cloudflared` du système (`gdc`) contient un `--token` dans son
+`ExecStart` : c'est ce token qui porte sa configuration, pas le fichier local.
+Un tunnel tokenisé ignore `config.yml`. Le tunnel `heist`, lui, est localement
+géré et lit `~/.cloudflared/heist.yml`.
 
 ```bash
-sudo systemctl restart cloudflared
-journalctl -u cloudflared -n 50 --no-pager
+systemctl status heist heist-tunnel --no-pager
+journalctl -u heist-tunnel -n 50 --no-pager
 ```

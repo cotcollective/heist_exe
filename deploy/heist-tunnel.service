@@ -1,0 +1,14 @@
+[Unit]
+Description=Cloudflare Tunnel — chasse.legarsdeschandails.store → 127.0.0.1:8000
+After=network-online.target heist.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=portefolio
+ExecStart=/usr/local/bin/cloudflared --no-autoupdate --config /home/portefolio/.cloudflared/heist.yml tunnel run
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
