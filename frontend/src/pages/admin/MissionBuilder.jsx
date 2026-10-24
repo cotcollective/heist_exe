@@ -136,16 +136,16 @@ const newWaypoint = (order) => ({
 
 // ── MissionBuilder ────────────────────────────────────────────────────────────
 export default function MissionBuilder() {
-  const { id }   = useParams()
+  const { missionId } = useParams()
   const navigate = useNavigate()
-  const isNew    = !id || id === 'new'
+  const isNew    = !missionId || missionId === 'new'
   const adminKey = sessionStorage.getItem('hx_admin_key') ?? ''
 
   const [form, setForm]           = useState({
     title: '', lore: '', pin: '', duration_minutes: 45, reward_text: '', audio_file: null,
   })
   const [waypoints, setWaypoints] = useState([newWaypoint(0)])
-  const [savedId, setSavedId]     = useState(isNew ? null : parseInt(id))
+  const [savedId, setSavedId]     = useState(isNew ? null : parseInt(missionId))
   const [saving, setSaving]       = useState(false)
   const [saved, setSaved]         = useState(false)
   const [error, setError]         = useState('')
@@ -186,7 +186,7 @@ export default function MissionBuilder() {
   useEffect(() => {
     if (isNew) return
     adminApi.listMissions(adminKey).then((missions) => {
-      const m = missions.find((x) => x.id === parseInt(id))
+      const m = missions.find((x) => x.id === parseInt(missionId))
       if (!m) { navigate('/admin/dashboard'); return }
       setForm({
         title: m.title, lore: m.lore ?? '', pin: '',

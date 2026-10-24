@@ -30,9 +30,10 @@ Une mission était une île. Elle est maintenant un calque sur un substrat parta
 
 #### Fixed
 - **`tests/conftest.py`** — `ADMIN_KEY` était définie après l'import de `app.main`, alors que `app/auth.py` la lit au niveau module. Résultat : 16 tests sur 22 échouaient en 403 et `KeyError: 'id'` en cascade. Une seule cause, seize symptômes.
+- **`MissionBuilder` ne chargeait jamais une mission existante** — la route déclare `/admin/builder/:missionId`, le composant lisait `useParams().id`. Le paramètre était toujours `undefined`, donc le builder restait en mode « nouvelle mission » et le bouton de versement n'apparaissait jamais sur une mission qu'on venait de créer.
 
 #### Tests
-- **38 pytest** (22 → 38) : plantation, bbox, fuite de `qr_code`, preuve QR absente/invalide/valide, idempotence par joueur, multiplicité multi-joueurs, versement idempotent, versement depuis payload, comptes mixtes, contrôle admin.
+- **44 pytest** (22 → 44) : plantation, bbox, fuite de `qr_code`, preuve QR absente/invalide/valide, idempotence par joueur, multiplicité multi-joueurs, versement idempotent, versement depuis payload, comptes mixtes, contrôle admin, migration d'une base 1.0.0 (données et énigmes préservées, `NOT NULL` relâché), rejeu idempotent de la migration, baseline d'une base neuve.
 
 ---
 
