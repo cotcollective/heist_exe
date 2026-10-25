@@ -47,6 +47,10 @@ export const useMissionStore = create(
 
       setMissionComplete: () => set({ missionComplete: true }),
 
+      // Le décompte est calculé à l'affichage depuis `startedAt`. Cette action
+      // ne sert qu'à garder la valeur persistée à jour (reprise, autres écrans).
+      setRemaining: (secs) => set({ remainingSeconds: Math.max(0, Math.floor(secs)) }),
+
       tickTimer: () => set((s) => ({
         remainingSeconds: Math.max(0, (s.remainingSeconds ?? 0) - 1),
       })),

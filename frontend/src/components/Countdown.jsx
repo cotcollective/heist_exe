@@ -1,49 +1,70 @@
-import { useEffect, useRef } from 'react'
+/**
+ * Countdown — l'horloge de la mission.
+ *
+ * Elle se calcule sur le TEMPS MURAL depuis `startedAt`, pas sur un compteur
+ * qu'on décrémente. Trois défauts réels l'ont imposé :
+ *
+ * 1. Elle ne dépend plus du WebSocket. Avant, une garde `if (!sessionId)`
+ *    sortait de l'effet — et `sessionId` valait null (Boot passait `null`).
+ *    Donc aucun tick, aucun repli local, un 45:00 figé pour toujours. Une
+ *    horloge qui s'arrête quand un socket manque n'est pas une horloge.
+ *
+ * 2. Elle ne dérive pas. `setInterval` est étranglé quand l'onglet passe en
+ *    arrière-plan (souvent une fois par minute). Un compteur décrémenté perd
+ *    alors tout le temps non compté. Ici on recalcule depuis l'heure : un
+ *    tick en retard n'enlève rien.
+ *
+ * 3. Elle survit au rechargement. `startedAt` est persisté, donc reprendre
+ *    la partie reprend le vrai temps écoulé.
+ *
+ * Le WebSocket du serveur, lui, repartait à `duration` à chaque connexion :
+ * une coupure réseau redonnait le temps plein. Un enfant qui perd le réseau
+ * dans l'escalier aurait gagné du temps. On ne s'en sert plus pour l'affichage.
+ */
+
+import { useEffect, useRef, useState } from 'react'
 import { useMissionStore } from '../store/missionStore'
-import { createCountdownSocket } from '../api/client'
 
 function fmt(s) {
   const m = Math.floor(s / 60).toString().padStart(2, '0')
-  const sec = (s % 60).toString().padStart(2, '0')
+  const sec = Math.floor(s % 60).toString().padStart(2, '0')
   return `${m}:${sec}`
 }
 
 export default function Countdown({ onTimeout }) {
-  const { mission, sessionId, remainingSeconds, tickTimer } = useMissionStore()
-  const wsRef = useRef(null)
-  const intervalRef = useRef(null)
+  const mission = useMissionStore((s) => s.mission)
+  const startedAt = useMissionStore((s) => s.startedAt)
+  const setRemaining = useMissionStore((s) => s.setRemaining)
+
+  const total = (mission?.duration_minutes ?? 45) * 60
+
+  // Origine : le début enregistré. Fixée une fois pour ne pas glisser à
+  // chaque rendu.
+  const t0Ref = useRef(startedAt ?? Date.now())
+
+  // Le tick ne sert qu'à redessiner ; la valeur vient de l'heure.
+  const [, force] = useState(0)
+  const firedRef = useRef(false)
 
   useEffect(() => {
-    if (!mission || !sessionId) return
+    const id = setInterval(() => force((n) => n + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
 
-    // Fallback local si WS échoue
-    const startLocalTimer = () => {
-      intervalRef.current = setInterval(() => {
-        tickTimer()
-      }, 1000)
+  const elapsed = Math.floor((Date.now() - t0Ref.current) / 1000)
+  const secs = Math.max(0, total - elapsed)
+
+  useEffect(() => {
+    setRemaining?.(secs)
+    if (secs === 0 && !firedRef.current) {
+      firedRef.current = true
+      onTimeout?.()
     }
+  }, [secs]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    wsRef.current = createCountdownSocket(
-      mission.id,
-      sessionId,
-      (remainingSeconds ?? mission.duration_minutes * 60),
-      {
-        onTick: (secs) => useMissionStore.setState({ remainingSeconds: secs }),
-        onTimeout: () => onTimeout?.(),
-        onError: startLocalTimer,
-      }
-    )
-
-    return () => {
-      wsRef.current?.close()
-      clearInterval(intervalRef.current)
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const secs = remainingSeconds ?? (mission?.duration_minutes ?? 45) * 60
-  const pct = mission ? (secs / (mission.duration_minutes * 60)) * 100 : 100
+  const pct = total > 0 ? (secs / total) * 100 : 100
   const isCritical = secs < 120
-  const isWarning  = secs < 300
+  const isWarning = secs < 300
 
   return (
     <div className={`font-mono text-center ${isCritical ? 'animate-countdown-warn' : ''}`}>
@@ -57,7 +78,6 @@ export default function Countdown({ onTimeout }) {
       }`}>
         {fmt(secs)}
       </div>
-      {/* Barre de progression */}
       <div className="mt-2 h-1 bg-hx-muted rounded-full overflow-hidden">
         <div
           className={`h-full transition-all duration-1000 rounded-full ${
