@@ -8,6 +8,12 @@ Usage:
 
 La mission utilise de vraies coordonnées GPS de Tétreaultville, Montréal.
 PIN de la mission: 2077
+
+ATTENTION: ce script crée l'ANCIENNE mission de démo, avec le PIN 2077.
+Les cinq missions par défaut livrées avec l'app utilisent 1111 / 2222 /
+3333 / 4444 / 5555 (voir app/seed_defaults.py). Si tu tapes 2077 sur une
+mission par défaut, tu obtiendras « PIN incorrect » — c'est normal, ce ne
+sont pas les mêmes missions.
 """
 import sys
 import json

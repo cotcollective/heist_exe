@@ -15,7 +15,7 @@ async def create_mission(payload: MissionCreate, db: AsyncSession = Depends(get_
     mission = Mission(
         title=payload.title,
         lore=payload.lore,
-        pin_hash=hash_secret(payload.pin),
+        pin_hash=hash_secret(payload.pin.strip()),
         duration_minutes=payload.duration_minutes,
         reward_text=payload.reward_text,
     )

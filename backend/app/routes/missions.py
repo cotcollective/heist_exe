@@ -17,7 +17,11 @@ async def player_auth(payload: PlayerAuth, db: AsyncSession = Depends(get_db)):
     if not mission or not mission.is_active:
         raise HTTPException(status_code=404, detail="Mission introuvable ou inactive")
 
-    if not verify_secret(payload.pin, mission.pin_hash):
+    # On retire les espaces avant de comparer : sur un clavier de téléphone,
+    # un espace qui traîne (autocomplétion, copier-coller, retour de ligne)
+    # est banal, et il produisait un « PIN incorrect » incompréhensible.
+    # La réponse d'énigme était déjà normalisée ; le PIN ne l'était pas.
+    if not verify_secret(payload.pin.strip(), mission.pin_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="PIN incorrect")
 
     # Créer une session joueur
