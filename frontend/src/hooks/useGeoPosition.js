@@ -1,6 +1,15 @@
 /**
  * useGeoPosition — Hook GPS unifié avec support Dev Mode.
  *
+ * L'ACCURACY fait partie du résultat, et ce n'est pas un détail.
+ *
+ * Le navigateur peut rendre une position obtenue par WiFi ou par IP, avec
+ * une incertitude de plusieurs centaines de mètres — surtout sur un
+ * ordinateur de bureau, ou à l'intérieur. L'ancienne version l'ignorait :
+ * elle dessinait un point net, et le joueur lisait « l'app me place au
+ * mauvais endroit ». Ce n'était pas la carte qui mentait, c'était nous qui
+ * affirmions une précision que la mesure n'avait pas.
+ *
  * En production  : wraps navigator.geolocation.watchPosition
  * En dev (VITE_DEV_GPS=true) : prioritise la position simulée injectée via inject()
  */
@@ -56,12 +65,15 @@ export function useGeoPosition(wp) {
     const [bearing, setBearing] = useState(null)
     const [inRange, setInRange] = useState(false)       // = DANS la zone de recherche
     const [geoError, setGeoError] = useState('')
+    const [accuracy, setAccuracy] = useState(null)   // rayon d'incertitude, en mètres
     const [simPos, setSimPos] = useState(null) // [lat, lng] simulées
+    const [simAccuracy, setSimAccuracy] = useState(null) // précision simulée, mètres
     const [retryTick, setRetryTick] = useState(0)  // relance le watch
 
     // Injection externe (DevGpsPanel)
-    const inject = useCallback((lat, lng) => {
+    const inject = useCallback((lat, lng, acc = null) => {
         setSimPos([lat, lng])
+        setSimAccuracy(acc)
     }, [])
 
     useEffect(() => {
@@ -80,6 +92,9 @@ export function useGeoPosition(wp) {
 
         // Dev mode : position simulée en priorité
         if (DEV_GPS && simPos) {
+            // L'accuracy simulée passe par le même champ que la vraie : on
+            // teste le rendu, pas un chemin parallèle qui divergerait.
+            setAccuracy(simAccuracy)
             update(simPos[0], simPos[1])
             return
         }
@@ -91,20 +106,22 @@ export function useGeoPosition(wp) {
 
         const watchId = navigator.geolocation.watchPosition(
             (pos) => {
-                const { latitude: lat, longitude: lng } = pos.coords
+                const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords
                 setGeoError('')
+                setAccuracy(acc ?? null)
                 update(lat, lng)
             },
             (err) => setGeoError(humanGeoError(err)),
             { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
         )
         return () => navigator.geolocation.clearWatch(watchId)
-    }, [wp, simPos, retryTick])
+    }, [wp, simPos, simAccuracy, retryTick])
 
     const retry = useCallback(() => {
         setGeoError('')
+        setAccuracy(null)
         setRetryTick((t) => t + 1)
     }, [])
 
-    return { playerPos, distance, edgeDistance, bearing, inRange, geoError, inject, retry, DEV_GPS }
+    return { playerPos, accuracy, distance, edgeDistance, bearing, inRange, geoError, inject, retry, DEV_GPS }
 }

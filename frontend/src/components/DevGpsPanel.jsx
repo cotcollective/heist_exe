@@ -51,6 +51,26 @@ export default function DevGpsPanel({ waypoints, currentWpId, onInject }) {
                         ))}
                     </div>
 
+                    {/* Mesures dégradées : c'est ainsi qu'on reproduit le
+                        « l'app me place au mauvais endroit ». Une position
+                        WiFi ressemble à un point net, mais elle peut être à
+                        des centaines de mètres. */}
+                    <div className="dev-gps-section-label">// MESURE DÉGRADÉE</div>
+                    <div className="dev-gps-wp-list">
+                        <button
+                            className="dev-gps-wp-btn"
+                            onClick={() => waypoints?.[0] && onInject(waypoints[0].lat + 0.0009, waypoints[0].lng, 250)}
+                        >
+                            📡 ~100 m du WP · précision 250 m
+                        </button>
+                        <button
+                            className="dev-gps-wp-btn"
+                            onClick={() => waypoints?.[0] && onInject(waypoints[0].lat + 0.0025, waypoints[0].lng, 850)}
+                        >
+                            📡 ~280 m du WP · précision 850 m
+                        </button>
+                    </div>
+
                     {/* Coordonnées custom */}
                     <div className="dev-gps-section-label">// COORDONNÉES MANUELLES</div>
                     <div className="dev-gps-custom">

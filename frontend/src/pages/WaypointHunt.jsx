@@ -21,9 +21,15 @@ const playerIcon = L.divIcon({
   iconSize: [14, 14], iconAnchor: [7, 7],
 })
 
-function FlyTo({ position }) {
+function FlyTo({ position, accuracy }) {
   const map = useMap()
-  useEffect(() => { if (position) map.flyTo(position, 17, { duration: 1.5 }) }, [position]) // eslint-disable-line
+  useEffect(() => {
+    if (!position) return
+    // On ne zoome pas à 17 sur une mesure à 800 m d'incertitude : à ce zoom,
+    // 800 m font plusieurs écrans, et le point paraît absurdement précis.
+    const z = accuracy == null ? 17 : accuracy > 1000 ? 13 : accuracy > 300 ? 14 : accuracy > 100 ? 15 : 17
+    map.flyTo(position, z, { duration: 1.5 })
+  }, [position]) // eslint-disable-line
   return null
 }
 
@@ -35,7 +41,7 @@ export default function WaypointHunt() {
 
   const wp = currentWaypoint
 
-  const { playerPos, edgeDistance, bearing, inRange, geoError, inject, retry } = useGeoPosition(wp)
+  const { playerPos, accuracy, edgeDistance, bearing, inRange, geoError, inject, retry } = useGeoPosition(wp)
 
   // Affichage COARSE, et uniquement la distance au BORD de la zone.
   // Un compteur précis au mètre transforme le téléphone en détecteur de métaux :
@@ -76,7 +82,11 @@ export default function WaypointHunt() {
                 ? 'text-hx-green animate-blink'
                 : 'text-hx-dim'
               }`}>
-              {inRange ? 'CHERCHE' : coarse !== null ? 'APPROCHE' : geoError ? 'BLOQUÉ' : 'LOCALISE…'}
+              {inRange
+                ? 'CHERCHE'
+                : coarse !== null
+                  ? (accuracy != null && accuracy > 100 ? `± ${Math.round(accuracy)}m` : 'APPROCHE')
+                  : geoError ? 'BLOQUÉ' : 'LOCALISE…'}
             </div>
           </div>
         </div>
@@ -109,8 +119,17 @@ export default function WaypointHunt() {
           >
             <Popup>Zone de recherche — la cache est quelque part ici.</Popup>
           </Circle>
+          {/* L'incertitude de la mesure, dessinée. Sans elle, un point net
+              laisse croire à une précision qu'on n'a pas. */}
+          {playerPos && accuracy != null && accuracy > 15 && (
+            <Circle
+              center={playerPos}
+              radius={Math.min(accuracy, 3000)}
+              pathOptions={{ color: '#a78bfa', weight: 1, fillColor: '#a78bfa', fillOpacity: 0.10 }}
+            />
+          )}
           {playerPos && <Marker position={playerPos} icon={playerIcon} />}
-          <FlyTo position={playerPos ?? mapCenter} />
+          <FlyTo position={playerPos ?? mapCenter} accuracy={accuracy} />
         </MapContainer>
 
         {/* Grosse flèche Crazy Taxi — overlay positionné absolut sur la carte */}
@@ -119,6 +138,15 @@ export default function WaypointHunt() {
 
       {/* ── Footer ── */}
       <div className="px-4 py-4 border-t border-hx-border bg-hx-bg">
+        {!geoError && accuracy != null && accuracy > 100 && (
+          <div className="border border-hx-amber/40 bg-hx-amber/5 px-3 py-2 mb-2 font-mono">
+            <div className="text-hx-amber text-[11px] leading-snug">
+              Position approximative (± {Math.round(accuracy)} m). La mesure vient du
+              réseau, pas du satellite. Sors à découvert ou active la localisation
+              précise — sinon la distance affichée ne veut rien dire.
+            </div>
+          </div>
+        )}
         {geoError && (
           <div className="border border-hx-amber/40 bg-hx-amber/5 px-3 py-2 mb-2 font-mono">
             <div className="text-hx-amber text-[11px] leading-snug">{geoError}</div>
